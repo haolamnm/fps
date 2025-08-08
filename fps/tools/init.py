@@ -1,6 +1,9 @@
 from pathlib import Path
 import shutil
 import argparse
+from ..services.common.utils import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_skel_dir() -> Path:
@@ -30,6 +33,6 @@ if __name__ == "__main__":
 
     try:
         copy_skel_to(args.dest)
-        print(f"[init] Skeleton files copied to {args.dest}")
+        logger.info(f"Skeleton files copied to {args.dest}")
     except FileNotFoundError as e:
-        print(f"[init] Error: {e}")
+        logger.error(f"Error during initialization: {e}")
