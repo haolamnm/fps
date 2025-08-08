@@ -45,14 +45,14 @@ class ObjectRecord:
 @dataclass
 class Frame:
     video_id: str
-    scene_id: str
+    _id: str
     path: Path
 
 
 @dataclass
 class Scene:
     video_id: str
-    scene_id: str
+    _id: str
     video_path: Path
     start_frame: int
     start_time: float
