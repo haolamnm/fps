@@ -14,7 +14,7 @@ from ...common.extractors import BaseObjectExtractor
 from ...common.types import ObjectRecord
 from ...common.utils import get_logger
 
-logger = get_logger("analysis.colors.extract")
+logger = get_logger(__name__)
 
 
 def load_image(image_path: Path) -> np.ndarray:

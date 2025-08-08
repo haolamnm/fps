@@ -11,7 +11,7 @@ from pprint import pprint
 
 from ...common.utils import get_logger
 
-logger = get_logger("analysis.colors.visualize")
+logger = get_logger(__name__)
 
 
 def get_json_by_id(input_path: Path, record_id: str) -> dict[str, Any]:
