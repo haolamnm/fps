@@ -77,7 +77,11 @@ def create_app(model_name: str) -> FastAPI:
             raise HTTPException(status_code=400, detail="Missing 'url' parameter")
         try:
             feature_vector = encoder.encode_url(url)
-            return {"url": url, "feature_vector": feature_vector, "length": len(feature_vector)}
+            return {
+                "url": url,
+                "feature_vector": feature_vector,
+                "length": len(feature_vector),
+            }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
