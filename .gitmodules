@@ -1,0 +1,3 @@
+[submodule "fps/services/analysis/features-clip2video/clip2video"]
+	path = fps/services/analysis/features-clip2video/clip2video
+	url = https://github.com/CryhanFang/CLIP2Video.git
