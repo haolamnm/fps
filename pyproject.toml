@@ -5,6 +5,8 @@ description = "None"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "av>=15.0.0",
+    "easydict>=1.13",
     "fastapi>=0.116.1",
     "h5py>=3.14.0",
     "more-itertools>=10.7.0",
