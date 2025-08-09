@@ -2,10 +2,12 @@
 
 Command to run a specific task.
 
-## 1. Initialize fps folder
+## 1. Initialize collection
+
+Copy all files in the `./fps/skel` directory to the `~/fps` directory.
 
 ```bash
-cp ~r fps/skel ~/fps
+python -m fps.tools.init
 ```
 
 ## 2. Import videos
@@ -18,6 +20,7 @@ Step 5: Extract frames from videos using scenedetect.
 Step 6: Create thumbnails for each video using ffmpeg.
 
 ```bash
+python -m fps.tools.import VIDEO_PATH --id VIDEO_ID
 ```
 
 ## 3. Analyze videos

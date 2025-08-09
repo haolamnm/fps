@@ -330,6 +330,7 @@ dependencies = [
     { name = "pillow" },
     { name = "platformdirs" },
     { name = "pyyaml" },
+    { name = "scenedetect" },
     { name = "scikit-image" },
     { name = "scikit-learn" },
     { name = "scipy" },
@@ -356,6 +357,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=11.3.0" },
     { name = "platformdirs", specifier = ">=4.3.8" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "scenedetect", specifier = ">=0.6.6" },
     { name = "scikit-image", specifier = ">=0.25.2" },
     { name = "scikit-learn", specifier = ">=1.7.1" },
     { name = "scipy", specifier = ">=1.16.1" },
@@ -1609,6 +1611,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ad/fe/cad1d9762868c7c5dc70c8620074df28ebb1a8e4c17d4c0cb031889c457e/safetensors-0.6.2-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:d944cea65fad0ead848b6ec2c37cc0b197194bec228f8020054742190e9312ac", size = 655957, upload-time = "2025-08-08T13:13:57.029Z" },
     { url = "https://files.pythonhosted.org/packages/59/a7/e2158e17bbe57d104f0abbd95dff60dda916cf277c9f9663b4bf9bad8b6e/safetensors-0.6.2-cp38-abi3-win32.whl", hash = "sha256:cab75ca7c064d3911411461151cb69380c9225798a20e712b102edda2542ddb1", size = 308926, upload-time = "2025-08-08T13:14:01.095Z" },
     { url = "https://files.pythonhosted.org/packages/2c/c3/c0be1135726618dc1e28d181b8c442403d8dbb9e273fd791de2d4384bcdd/safetensors-0.6.2-cp38-abi3-win_amd64.whl", hash = "sha256:c7b214870df923cbc1593c3faee16bec59ea462758699bd3fee399d00aac072c", size = 320192, upload-time = "2025-08-08T13:13:59.467Z" },
+]
+
+[[package]]
+name = "scenedetect"
+version = "0.6.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "numpy" },
+    { name = "platformdirs" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/59/36/1e29ac958e2d2b5e4365fb7de03f94a98b9949c46267e682bcfe22460812/scenedetect-0.6.6.tar.gz", hash = "sha256:4b50946abca886bd623e7a304e30da197f0e7e69cd65d80115d551538261c35b", size = 165791, upload-time = "2025-03-10T01:40:57.693Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/5b/c090fe55521265eb1816c303267e985125000a4e32237e95562ed462608f/scenedetect-0.6.6-py3-none-any.whl", hash = "sha256:cbd47e4aff1d3ba6f4ee00e54ff9af26378aa2b48f501003dddf5f96e37d3eb0", size = 131581, upload-time = "2025-03-10T01:40:56.136Z" },
 ]
 
 [[package]]

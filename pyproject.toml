@@ -17,6 +17,7 @@ dependencies = [
     "pillow>=11.3.0",
     "platformdirs>=4.3.8",
     "pyyaml>=6.0.2",
+    "scenedetect>=0.6.6",
     "scikit-image>=0.25.2",
     "scikit-learn>=1.7.1",
     "scipy>=1.16.1",
