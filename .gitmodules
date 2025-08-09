@@ -4,3 +4,6 @@
 [submodule "fps/services/analysis/features-clipvip/clipvip"]
 	path = fps/services/analysis/features-clipvip/clipvip
 	url = https://github.com/eisneim/clip-vip_video_search.git
+[submodule "fps/services/analysis/objects-mmdet/mmdetection"]
+	path = fps/services/analysis/objects-mmdet/mmdetection
+	url = https://github.com/open-mmlab/mmdetection.git
