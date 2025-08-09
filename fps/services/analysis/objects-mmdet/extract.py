@@ -16,7 +16,7 @@ from ...common.types import ObjectRecord
 
 
 def convert_detections_to_record(
-    detections: Any, detector: str, classes: list[str], image_hw: tuple[int, int]
+    detections: Any, detector: str, classes: list[str], image_hw: tuple[int, int], _id: str
 ) -> ObjectRecord:
     if detector == "mrcnn-lvis":
         boxes_and_scores = detections[0]
@@ -38,7 +38,7 @@ def convert_detections_to_record(
     scores = boxes_and_scores[:, 4]
 
     return ObjectRecord(
-        _id="",
+        _id=_id,
         scores=scores.tolist(),
         yxyx_boxes=boxes.tolist(),
         names=labels,
@@ -90,8 +90,8 @@ class MMDetExtractor(BaseObjectExtractor):
         self.detector: str = args.detector
         self.device = "cuda" if self.gpu and torch.cuda.is_available() else "cpu"
 
-        config_file = self.DETECTORS[self.detector]["config"]
-        checkpoint_file = self.DETECTORS[self.detector]["checkpoint"]
+        config_file = str(self.DETECTORS[self.detector]["config"])
+        checkpoint_file = str(self.DETECTORS[self.detector]["checkpoint"])
         self.model = init_detector(config_file, checkpoint_file, device=self.device)
 
     def extract_path(self, frame_path: Path) -> ObjectRecord:
@@ -100,7 +100,7 @@ class MMDetExtractor(BaseObjectExtractor):
             image_hw = image.shape[:2]
             detections = inference_detector(self.model, image)
             return convert_detections_to_record(
-                detections, self.detector, self.model.CLASSES, image_hw # type: ignore
+                detections, self.detector, self.model.CLASSES, image_hw, frame_path.name # type: ignore
             )
 
     def extract_list(self, frame_paths: list[Path]) -> list[ObjectRecord]:
