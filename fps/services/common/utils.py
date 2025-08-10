@@ -1,4 +1,5 @@
 import logging
+
 import yaml
 
 
@@ -14,7 +15,7 @@ def get_logger(name: str) -> logging.Logger:
 
 
 def load_config(config_path: str) -> dict:
-    with open(config_path, "r") as file:
+    with open(config_path) as file:
         config = yaml.safe_load(file)
 
     return config

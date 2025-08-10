@@ -3,9 +3,9 @@ import csv
 import itertools
 import re
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from dataclasses import asdict
 from pathlib import Path
-from typing import Iterable, Iterator
 
 import more_itertools
 
@@ -142,11 +142,13 @@ class BaseFrameExtractor(BaseExtractor):
             return
 
         # Unpack frames into video IDs, frame IDs, and paths
-        video_ids, frame_ids, frame_paths = zip(*[(frame.video_id, frame._id, frame.path) for frame in frames])
+        video_ids, frame_ids, frame_paths = zip(
+            *[(frame.video_id, frame._id, frame.path) for frame in frames], strict=True
+        )
         records = self.extract_iterable(frame_paths)
 
         # Group records by video ID
-        triples = zip(video_ids, frame_ids, records)
+        triples = zip(video_ids, frame_ids, records, strict=True)
         video_groups: dict[str, list[tuple[str, FeatureRecord]]] = defaultdict(list)
         for video_id, frame_id, record in triples:
             video_groups[video_id].append((frame_id, record))
@@ -246,11 +248,13 @@ class BaseObjectExtractor(BaseExtractor):
             return
 
         # Unpack frames into video IDs, frame IDs, and paths
-        video_ids, frame_ids, frame_paths = zip(*[(frame.video_id, frame._id, frame.path) for frame in frames])
+        video_ids, frame_ids, frame_paths = zip(
+            *[(frame.video_id, frame._id, frame.path) for frame in frames], strict=True
+        )
         records = self.extract_iterable(frame_paths)
 
         # Group records by video ID
-        triples = zip(video_ids, frame_ids, records)
+        triples = zip(video_ids, frame_ids, records, strict=True)
         video_groups: dict[str, list[tuple[str, ObjectRecord]]] = defaultdict(list)
         for video_id, frame_id, record in triples:
             video_groups[video_id].append((frame_id, record))
@@ -311,7 +315,7 @@ class BaseVideoExtractor(BaseExtractor):
 
         # For each video, read the 'scenes.csv" file to get scene metadata
         for video_id, group in itertools.groupby(frames, key=lambda x: x[0]):
-            frame_ids, frame_paths = zip(*((frame_id, frame_path) for _, frame_id, frame_path in group))
+            frame_ids, frame_paths = zip(*((frame_id, frame_path) for _, frame_id, frame_path in group), strict=True)
             frame_ids = list(map(str, frame_ids))
             frame_paths = list(map(Path, frame_paths))
 
@@ -331,7 +335,7 @@ class BaseVideoExtractor(BaseExtractor):
             logger.info(f"Found video file {video_path} for video ID {video_id}")
 
             # Read the scenes CSV file to get scene metadata
-            with open(scenes_file, "r") as file:
+            with open(scenes_file) as file:
                 reader = csv.DictReader(file)
                 frame_id_to_metadata = {
                     int(row["Scene Number"]): (
@@ -343,7 +347,7 @@ class BaseVideoExtractor(BaseExtractor):
                     for row in reader
                 }
 
-            for frame_id, frame_path in zip(frame_ids, frame_paths):
+            for frame_id, frame_path in zip(frame_ids, frame_paths, strict=True):
                 scene_id = int(re.split("[-_]", frame_path.stem)[-1])
                 if scene_id not in frame_id_to_metadata:
                     logger.warning(f"Scene ID {scene_id} not found in {scenes_file}, skipping frame {frame_path}")
@@ -405,7 +409,7 @@ class BaseVideoExtractor(BaseExtractor):
 
         records = self.extract_iterable(scenes)
         video_groups: dict[str, list[tuple[str, FeatureRecord]]] = defaultdict(list)
-        for scene, record in zip(scenes, records):
+        for scene, record in zip(scenes, records, strict=True):
             video_groups[scene.video_id].append((scene._id, record))
 
         num_videos = len(video_groups)
