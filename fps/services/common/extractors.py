@@ -13,7 +13,7 @@ from .files import FileHDF5, FileJSONL
 from .types import FeatureRecord, Frame, ObjectRecord, Scene
 from .utils import get_logger
 
-logger = get_logger("common.extractors")
+logger = get_logger(__name__)
 
 
 class BaseExtractor:
