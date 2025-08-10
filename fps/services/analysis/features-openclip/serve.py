@@ -2,7 +2,6 @@ import argparse
 
 import open_clip
 import torch
-import torch.nn.functional as F
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +25,7 @@ class OpenCLIPQueryEncoder:
                 context_length=self.context_length,  # type: ignore
             ).to(self.device)
             features = self.model.encode_text(inputs).float()  # type: ignore
-            features = F.normalize(features, dim=-1, p=2)
+            features = torch.nn.functional.normalize(features, dim=-1, p=2)
 
             return features.cpu().squeeze().tolist()
 
@@ -60,7 +59,7 @@ def create_app(model_name: str, pretrained: str, title: str) -> FastAPI:
             feature_vector = encoder.encode(query)
             return {"feature_vector": feature_vector, "length": len(feature_vector)}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     return app
 
@@ -99,9 +98,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     model_name: str = args.model_name
-    if args.pretrained == "laion2b_s32b_b82k":
-        title = "clip-laion encoder"
-    else:
-        title = "clip-datacomp encoder"
+    title = "clip-laion encoder" if args.pretrained == "laion2b_s32b_b82k" else "clip-datacomp encoder"
+
     app = create_app(model_name, args.pretrained, title)
     uvicorn.run(app, host=args.host, port=args.port)
