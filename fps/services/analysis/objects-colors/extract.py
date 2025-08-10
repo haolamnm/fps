@@ -2,8 +2,9 @@ import argparse
 import collections
 import itertools
 import multiprocessing
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -32,7 +33,7 @@ def load_image(image_path: Path) -> np.ndarray:
         return image_np
 
     except Exception as e:
-        raise ValueError(f"Could not load image {image_path}: {e}")
+        raise ValueError(f"Could not load image {image_path}: {e}") from e
 
 
 def extract_colors(
@@ -95,7 +96,7 @@ def extract_colors(
                     associated_colors = color_labels[is_associated]
                     associated_areas = color_areas[is_associated]
 
-                    tile_colors.extend(zip(associated_colors, associated_areas))
+                    tile_colors.extend(zip(associated_colors, associated_areas, strict=True))
 
             tile_colors.sort(key=lambda x: x[1], reverse=True)
             tiles_colors[(r, c)] = tile_colors
@@ -141,7 +142,7 @@ def convert_table_to_record(
         # yxyx format
         yxyx_bbox = (r / num_rows, c / num_cols, (r + 1) / num_rows, (c + 1) / num_cols)
 
-        cell_labels, cell_scores = zip(*cell_colors)
+        cell_labels, cell_scores = zip(*cell_colors, strict=True)
         cell_labels = [label_map[c] for c in cell_labels]
 
         scores.extend(cell_scores)
