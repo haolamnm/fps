@@ -73,7 +73,7 @@ def main(args: argparse.Namespace) -> None:
             detector="cluster",
             cluster_code=cluster_code,
         )
-        for frame_id, cluster_code in zip(frame_ids, cluster_codes)
+        for frame_id, cluster_code in zip(frame_ids, cluster_codes, strict=True)
     ]
 
     if args.force and args.output_file.exists():
