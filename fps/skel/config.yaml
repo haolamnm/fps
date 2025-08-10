@@ -1,38 +1,42 @@
 analysis:
-  object_detectors:
+  objects:
     colors: {}
-    mrcnn-lvis: {}
-    vfnet64-coco: {}
+    mrcnn-lvis:
+      detector: mrcnn-lvis
+    vfnet64-coco:
+      detector: vfnet64-coco
     frcnn-oiv4: {}
 
   features:
     dinov2:
       chunk-size: 1000
-    aladin:
-      chunk-size: 1000
+    # aladin:
+    #   chunk-size: 1000
     clip-openai:
       batch-size: 1
       num-workers: 8
     clip-laion:
       batch-size: 1
       num-workers: 8
+      pretrained: laion2b_s32b_b82k
     clip-datacomp:
       batch-size: 1
       num-workers: 8
-    biomed-clip:
-      batch-size: 1
-      num-workers: 8
+      pretrained: datacomp_xl_s13b_b90k
+    # biomed-clip:
+    #   batch-size: 1
+    #   num-workers: 8
     clip2video:
-      pad-shot-to: 6
+      min-scene-duration: 6
       batch-size: 1
       num-workers: 8
     clipvip:
-      pad-shot-to: 6
+      min-scene-duration: 6
       batch-size: 1
       num-workers: 8
 
-  frames-cluster:
-    feature: dinov2
+  # frames_cluster:
+  #   feature: dinov2
 
 index:
   objects:
