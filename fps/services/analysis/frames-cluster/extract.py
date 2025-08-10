@@ -49,9 +49,7 @@ def cluster(frame_features: np.ndarray) -> list[str]:
         labels.append(assignments)
 
         if len(np.unique(assignments)) == 1:
-            logger.warning(
-                f"All samples assigned to the same cluster at threshold {thr:.2f}"
-            )
+            logger.warning(f"All samples assigned to the same cluster at threshold {thr:.2f}")
             break
 
     labels = np.column_stack(labels)
