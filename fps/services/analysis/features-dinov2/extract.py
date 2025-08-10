@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 import torch
-import torchvision.transforms as T
+import torchvision
 from PIL import Image
 
 from ...common.extractors import BaseFrameExtractor
@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore", category=UserWarning, message="xFormers is not
 logger = get_logger(__name__)
 
 
-def load_image(image_path: Path, transform: T.Compose | None = None) -> Any:
+def load_image(image_path: Path, transform: torchvision.transforms.Compose | None = None) -> Any:
     try:
         image = Image.open(image_path).convert("RGB")
         if transform:
@@ -30,12 +30,12 @@ def load_image(image_path: Path, transform: T.Compose | None = None) -> Any:
 class FrameListDataset(torch.utils.data.Dataset):
     def __init__(self, frame_paths: list[Path]) -> None:
         self.frame_paths = frame_paths
-        self.transform = T.Compose(
+        self.transform = torchvision.transforms.Compose(
             [
-                T.Resize(256),
-                T.CenterCrop(224),
-                T.ToTensor(),
-                T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+                torchvision.transforms.Resize(256),
+                torchvision.transforms.CenterCrop(224),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ]
         )
 
@@ -113,7 +113,7 @@ class DinoV2Extractor(BaseFrameExtractor):
         features = features / np.linalg.norm(features, axis=1, keepdims=True)
         records = [
             FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
-            for frame_path, feature in zip(frame_paths, features)
+            for frame_path, feature in zip(frame_paths, features, strict=True)
         ]
         return records
 

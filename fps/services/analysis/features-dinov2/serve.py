@@ -5,8 +5,7 @@ import warnings
 from pathlib import Path
 
 import torch
-import torch.nn.functional as F
-import torchvision.transforms as T
+import torchvision
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,12 +22,12 @@ class DinoV2FrameEncoder:
         )
         self.model = model.eval()
 
-        self.transform = T.Compose(
+        self.transform = torchvision.transforms.Compose(
             [
-                T.Resize(256),
-                T.CenterCrop(224),
-                T.ToTensor(),
-                T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+                torchvision.transforms.Resize(256),
+                torchvision.transforms.CenterCrop(224),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ]
         )
 
@@ -37,7 +36,7 @@ class DinoV2FrameEncoder:
         with torch.no_grad():
             inputs = self.transform(pil_image).unsqueeze(0).to(self.device)  # type: ignore
             image_features = self.model(inputs)
-            image_features = F.normalize(image_features, dim=-1, p=2)
+            image_features = torch.nn.functional.normalize(image_features, dim=-1, p=2)
 
         return image_features.squeeze().cpu().numpy().tolist()
 
@@ -81,10 +80,12 @@ def create_app(model_name: str) -> FastAPI:
                 "length": len(feature_vector),
             }
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     @app.post("/encode")
-    async def encode_image(image: UploadFile = File(...)):
+    async def encode_image(image: UploadFile | None = None):
+        if image is None:
+            image = File(...)
         if not image:
             raise HTTPException(status_code=400, detail="Missing 'image' file")
 
@@ -98,7 +99,7 @@ def create_app(model_name: str) -> FastAPI:
                 "length": len(feature_vector),
             }
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     return app
 
