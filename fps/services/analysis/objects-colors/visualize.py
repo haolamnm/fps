@@ -1,15 +1,16 @@
 import argparse
 import collections
+import gzip
 import json
+from pathlib import Path
+from pprint import pprint
+from typing import Any
+
 import numpy as np
 from skimage import io
-from .extract import COLORS
-from pathlib import Path
-import gzip
-from typing import Any
-from pprint import pprint
 
 from ...common.utils import get_logger
+from .extract import COLORS
 
 logger = get_logger(__name__)
 
@@ -38,7 +39,7 @@ def main(args: argparse.Namespace) -> None:
     colors_per_box = collections.defaultdict(list)
     output = np.zeros((args.height, args.width, 4), dtype=np.float32)
 
-    for box, label, score in zip(yxyx_boxes, labels, scores):
+    for box, label, score in zip(yxyx_boxes, labels, scores, strict=True):
         colors_per_box[tuple(box)].append((label, score))
 
     for box, colors in colors_per_box.items():
