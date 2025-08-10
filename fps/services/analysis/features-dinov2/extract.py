@@ -67,12 +67,12 @@ class DinoV2Extractor(BaseFrameExtractor):
         parser.add_argument(
             "--batch-size",
             type=int,
-            default=8,
+            default=1,
             help="number of frames to process in each batch",
         )
         parser.add_argument(
             "--num-workers",
-            default=4,
+            default=8,
             type=int,
             help="number of worker threads for data loading",
         )

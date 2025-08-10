@@ -11,7 +11,7 @@ from ...common.extractors import BaseObjectExtractor
 from ...common.types import ObjectRecord
 from ...common.utils import get_logger
 
-logger = get_logger("analysis.yolo.extract")
+logger = get_logger(__name__)
 
 
 def load_image_pil(image_path: Path) -> tuple[np.ndarray, int, int]:

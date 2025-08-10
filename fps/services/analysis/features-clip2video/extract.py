@@ -208,13 +208,13 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
         parser.add_argument(
             "--batch-size",
             type=int,
-            default=8,
+            default=1,
             help="batch size for processing",
         )
         parser.add_argument(
             "--num-workers",
             type=int,
-            default=4,
+            default=8,
             help="number of workers for data loading",
         )
         parser.add_argument(
