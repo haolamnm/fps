@@ -99,20 +99,14 @@ class OpenCLIPExtractor(BaseFrameExtractor):
 
             if len(current_chunk) >= chunk_size:
                 logger.info(f"Processing chunk of {len(current_chunk)} frames")
-                yield from self._process_chunk(
-                    current_chunk, self.batch_size, self.num_workers
-                )
+                yield from self._process_chunk(current_chunk, self.batch_size, self.num_workers)
                 current_chunk = []
 
         if current_chunk:
             logger.info(f"Processing chunk of {len(current_chunk)} frames")
-            yield from self._process_chunk(
-                current_chunk, self.batch_size, self.num_workers
-            )
+            yield from self._process_chunk(current_chunk, self.batch_size, self.num_workers)
 
-    def _process_chunk(
-        self, frame_paths: list[Path], batch_size: int, num_workers: int
-    ) -> Iterator[FeatureRecord]:
+    def _process_chunk(self, frame_paths: list[Path], batch_size: int, num_workers: int) -> Iterator[FeatureRecord]:
         dataset = FrameListDataset(frame_paths, self.processor)
         dataloader = torch.utils.data.DataLoader(
             dataset,
@@ -128,9 +122,7 @@ class OpenCLIPExtractor(BaseFrameExtractor):
                 features = features.cpu().numpy()
 
                 for frame_path, feature in zip(frame_paths, features):
-                    yield FeatureRecord(
-                        _id=frame_path.stem, feature_vector=feature.tolist()
-                    )
+                    yield FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
 
 
 if __name__ == "__main__":

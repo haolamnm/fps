@@ -13,9 +13,7 @@ class OpenCLIPQueryEncoder:
     def __init__(self, model_name: str, pretrained: str) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokenizer = open_clip.get_tokenizer(model_name)
-        self.model, _, _ = open_clip.create_model_and_transforms(
-            model_name, pretrained=pretrained, device=self.device
-        )
+        self.model, _, _ = open_clip.create_model_and_transforms(model_name, pretrained=pretrained, device=self.device)
         self.model = self.model.to(self.device)
         self.model = self.model.eval()
         self.context_length = self.model.context_length
