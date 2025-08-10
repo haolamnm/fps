@@ -35,14 +35,10 @@ def load_ids_and_features(file_paths: list[Path]) -> Iterator[tuple[str, np.ndar
             continue
         with h5py.File(file_path, "r") as file:
             if "features" not in file:
-                logger.warning(
-                    f"File {file_path} does not contain 'features' dataset, skipping."
-                )
+                logger.warning(f"File {file_path} does not contain 'features' dataset, skipping.")
                 continue
             if "ids" not in file:
-                logger.warning(
-                    f"File {file_path} does not contain 'ids' dataset, skipping."
-                )
+                logger.warning(f"File {file_path} does not contain 'ids' dataset, skipping.")
                 continue
             features_dataset = file["features"]
             if not isinstance(features_dataset, h5py.Dataset):
@@ -63,9 +59,7 @@ def load_ids_and_features(file_paths: list[Path]) -> Iterator[tuple[str, np.ndar
 def create(args: argparse.Namespace) -> None:
     # Skip if existing index and ID map files are present
     if not args.force and args.index_path.exists() and args.idmap_path.exists():
-        logger.info(
-            f"Index file {args.index_path} and ID map file {args.idmap_path} already exist"
-        )
+        logger.info(f"Index file {args.index_path} and ID map file {args.idmap_path} already exist")
         logger.info("Use --force to overwrite the existing index and ID map files")
         return
 
@@ -93,9 +87,7 @@ def create(args: argparse.Namespace) -> None:
     if not index.is_trained:
         logger.info(f"Training index with {args.train_size} samples")
         training_samples = more_itertools.take(args.train_size, ids_and_features)
-        training_features = np.array(
-            [feature for _, feature in training_samples], dtype=np.float32
-        )
+        training_features = np.array([feature for _, feature in training_samples], dtype=np.float32)
         index.train(training_features)
         logger.info("Completed training the index")
 
@@ -141,9 +133,7 @@ def add(args: argparse.Namespace) -> None:
 
     assert index.is_trained, "Index must be trained before adding features"
 
-    def _add_features_file(
-        features_file: Path, index: Any, idmap: list[str]
-    ) -> tuple[Any, list[str]]:
+    def _add_features_file(features_file: Path, index: Any, idmap: list[str]) -> tuple[Any, list[str]]:
         """Add features from a single file to the index."""
 
         # Load ids and features from the file
@@ -151,9 +141,7 @@ def add(args: argparse.Namespace) -> None:
             ids = np.array(file["ids"].asstr()[:], dtype=np.str_)  # type: ignore
             positions = [index for index, _id in enumerate(idmap) if _id in ids]
             if not args.force and positions:
-                logger.info(
-                    f"Skipping adding features from {features_file} as they already exist in the index"
-                )
+                logger.info(f"Skipping adding features from {features_file} as they already exist in the index")
                 return index, idmap
 
             features = np.array((file["features"][:]), dtype=np.float32)  # type: ignore
@@ -200,9 +188,7 @@ def remove(args: argparse.Namespace) -> None:
     positions: set[int] = set()
     for video_id in args.video_ids:
         regexp = re.compile(re.escape(video_id) + r"-\d+")
-        positions.update(
-            [index for index, _id in enumerate(idmap) if regexp.match(_id)]
-        )
+        positions.update([index for index, _id in enumerate(idmap) if regexp.match(_id)])
 
     # Skip index saving if no changes are made
     if not positions:
@@ -290,9 +276,7 @@ if __name__ == "__main__":
     )
     add_parser.set_defaults(func=add)
 
-    remove_parser = subparsers.add_parser(
-        "remove", help="remove a video from the index"
-    )
+    remove_parser = subparsers.add_parser("remove", help="remove a video from the index")
     remove_parser.add_argument(
         "video_ids",
         nargs="+",

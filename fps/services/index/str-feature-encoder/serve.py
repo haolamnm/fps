@@ -18,9 +18,7 @@ def load_encoder(features_name: str) -> Any:
 
     encoder_path = Path(f"~/fps/data/str-features-encoder-{features_name}.pkl").expanduser()
     if not encoder_path.exists():
-        raise FileNotFoundError(
-            f"Encoder for {features_name} not found at {encoder_path}"
-        )
+        raise FileNotFoundError(f"Encoder for {features_name} not found at {encoder_path}")
 
     encoder = surrogate.load_index(encoder_path)
     loaded_encoders[features_name] = encoder

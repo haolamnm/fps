@@ -18,9 +18,7 @@ class FaissIndexHandler:
         self.ids = ids
         self.idmap = {_id: i for i, _id in enumerate(ids)}
 
-    def search(
-        self, feature_vector: np.ndarray, k: int
-    ) -> tuple[list[str], list[float]]:
+    def search(self, feature_vector: np.ndarray, k: int) -> tuple[list[str], list[float]]:
         distances, indices = self.index.search(feature_vector, k)  # noqa: E741
 
         # If no results are found

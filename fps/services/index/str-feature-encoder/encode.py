@@ -54,18 +54,12 @@ def load_encoder(
             "dim_multiplier": 3.0,
         }
         index_type: str = encoder_config.get("index_type", default_index_type)
-        index_params: dict[str, float] = encoder_config.get(
-            "index_params", default_index_params
-        )
+        index_params: dict[str, float] = encoder_config.get("index_params", default_index_params)
 
         # Init the encoder
-        index_string = ", ".join(
-            f"{key}={value}" for key, value in index_params.items()
-        )
+        index_string = ", ".join(f"{key}={value}" for key, value in index_params.items())
         index_string = f"{index_type}({index_string})"
-        logger.info(
-            f"Building STR encoder: {index_string} for {features_dim} dimensions"
-        )
+        logger.info(f"Building STR encoder: {index_string} for {features_dim} dimensions")
 
         encoder = surrogate.index_factory(features_dim, index_type, index_params)
 
@@ -102,9 +96,7 @@ def process_video_id(
             if force:
                 output_path.unlink()
             else:
-                logger.info(
-                    f"Skipping STR features encoding for {features_path} as output already exists"
-                )
+                logger.info(f"Skipping STR features encoding for {features_path} as output already exists")
                 return
 
         ids = np.array(file["ids"].asstr()[:], dtype=np.str_)  # type: ignore
@@ -121,9 +113,7 @@ def process_video_id(
         batch_size: int = args.batch_size
 
         # Create batches of features
-        batches = (
-            features[i : i + batch_size] for i in range(0, num_remaining, batch_size)
-        )
+        batches = (features[i : i + batch_size] for i in range(0, num_remaining, batch_size))
 
         # Encode and generate surrogate documents in batches
         batch_encode = functools.partial(encoder.encode, inverted=False)
@@ -145,9 +135,7 @@ def process_video_id(
 
 def main(args: argparse.Namespace) -> None:
     # Peek features name and dimension
-    features_dim, features_name, train_features = get_train_features(
-        args.features_file_template, args.video_ids
-    )
+    features_dim, features_name, train_features = get_train_features(args.features_file_template, args.video_ids)
 
     # Load config
     encoder_config = load_config(args.config_path)["index"]["features"][features_name]

@@ -26,18 +26,14 @@ def get_labels_counter(record: ObjectRecord) -> collections.Counter:
 
 
 def load_hypersets(hypersets_path: Path) -> pd.Series:
-    hypersets = pd.read_csv(
-        hypersets_path, sep=";", usecols=[0, 1], names=["set", "hyperset"], index_col=0
-    )
+    hypersets = pd.read_csv(hypersets_path, sep=";", usecols=[0, 1], names=["set", "hyperset"], index_col=0)
     hypersets = hypersets.squeeze("columns")  # Convert to Series
     assert isinstance(hypersets, pd.Series), (
         "Hypersets should be a pandas Series with set names as index and hypersets as values"
     )
 
     # Drop empty hypersets, split hypersets by comma, strip whitespace
-    hypersets = (
-        hypersets.dropna().str.split(",").apply(lambda x: list(map(str.strip, x)))
-    )
+    hypersets = hypersets.dropna().str.split(",").apply(lambda x: list(map(str.strip, x)))
 
     return hypersets
 
@@ -51,9 +47,7 @@ def process_record(record: ObjectRecord, config: dict[str, Any]) -> ObjectRecord
 
     # Parallel arrays to list of objects
     objects = (
-        ObjectItem(
-            detector=record.detector, label=label, score=score, yxyx_box=yxyx_box
-        )
+        ObjectItem(detector=record.detector, label=label, score=score, yxyx_box=yxyx_box)
         for label, score, yxyx_box in zip(labels, scores, yxyx_boxes)
     )
 
@@ -70,9 +64,7 @@ def process_record(record: ObjectRecord, config: dict[str, Any]) -> ObjectRecord
     objects = filter(lambda x: _get_area(x.yxyx_box) >= min_area, objects)
 
     # Exclude labels (pre label ptraining)
-    exclude_labels: list[str] = config.get("exclude_labels", {}).get(
-        record.detector, []
-    )
+    exclude_labels: list[str] = config.get("exclude_labels", {}).get(record.detector, [])
     objects = filter(lambda x: x.label not in exclude_labels, objects)
 
     # Normalize labels
@@ -107,9 +99,7 @@ def process_record(record: ObjectRecord, config: dict[str, Any]) -> ObjectRecord
     return record
 
 
-def process_input_file(
-    input_file_path: Path, config: dict[str, Any]
-) -> Iterator[ObjectRecord]:
+def process_input_file(input_file_path: Path, config: dict[str, Any]) -> Iterator[ObjectRecord]:
     with gzip.open(input_file_path, "rt") as file:
         records = map(str.rstrip, file)
         records = map(json.loads, records)
@@ -163,9 +153,7 @@ def _get_area(yxyx_box: tuple[float, float, float, float]) -> float:
     return max(0, y1 - y0) * max(0, x1 - x0)
 
 
-def _get_iou(
-    box1: tuple[float, float, float, float], box2: tuple[float, float, float, float]
-) -> float:
+def _get_iou(box1: tuple[float, float, float, float], box2: tuple[float, float, float, float]) -> float:
     y0_1, x0_1, y1_1, x1_1 = box1
     y0_2, x0_2, y1_2, x1_2 = box2
 
@@ -205,9 +193,7 @@ def _get_nms(objects: Iterable[ObjectItem], iou_threshold: float) -> list[Object
     return kept_objects
 
 
-def apply_non_maximum_suppression(
-    record: ObjectRecord, iou_threshold: float = 0.5
-) -> ObjectRecord:
+def apply_non_maximum_suppression(record: ObjectRecord, iou_threshold: float = 0.5) -> ObjectRecord:
     colors = [obj for obj in record.objects or [] if obj.detector == "colors"]
     objects = [obj for obj in record.objects or [] if obj.detector != "colors"]
 
@@ -216,8 +202,7 @@ def apply_non_maximum_suppression(
 
     objects.sort(key=_get_key)
     objects = itertools.chain.from_iterable(
-        _get_nms(group, iou_threshold)
-        for _, group in itertools.groupby(objects, key=_get_key)
+        _get_nms(group, iou_threshold) for _, group in itertools.groupby(objects, key=_get_key)
     )
     objects = list(objects)
     record.objects = objects + colors
@@ -261,9 +246,7 @@ def _str_encode_positional_boxes(
     return surrogate_text
 
 
-def _str_encode_counts(
-    objects: Iterable[ObjectItem], monochrome: float, thresholds: dict[str, float]
-) -> str:
+def _str_encode_counts(objects: Iterable[ObjectItem], monochrome: float, thresholds: dict[str, float]) -> str:
     label_counts = collections.Counter()
 
     tokens: list[str] = []
@@ -286,11 +269,7 @@ def _str_encode_counts(
         tokens.append(token)
 
     # Handle monochrome
-    monochrome_token = (
-        "colorframe"
-        if monochrome > thresholds.get("monochrome", 0.01)
-        else "grayframe"
-    )
+    monochrome_token = "colorframe" if monochrome > thresholds.get("monochrome", 0.01) else "grayframe"
     monochrome_token = f"4wc{monochrome_token}"
     tokens.append(monochrome_token)
 
@@ -368,14 +347,10 @@ def process_video_id(
     video_id: str = "",
 ):
     if not force and str_output_file.exists() and cnt_output_file.exists():
-        logger.info(
-            f"Skipping object encoding, using existing files: {str_output_file} and {cnt_output_file}"
-        )
+        logger.info(f"Skipping object encoding, using existing files: {str_output_file} and {cnt_output_file}")
         return
 
-    assert all(input_file.exists() for input_file in input_files), (
-        "One or more input files do not exist"
-    )
+    assert all(input_file.exists() for input_file in input_files), "One or more input files do not exist"
 
     # Apply per-detector processing
     records = map(lambda x: process_input_file(x, config), input_files)
@@ -384,9 +359,7 @@ def process_video_id(
     merged_records = map(merge_records, zip(*records))
 
     # Apply all processing steps (hypersets, NMS, counting, STR encoding)
-    records_and_counters = map(
-        lambda x: process_merged_record(x, config, hypersets), merged_records
-    )
+    records_and_counters = map(lambda x: process_merged_record(x, config, hypersets), merged_records)
 
     # If forced, delete old file
     if force and str_output_file.exists():
@@ -427,16 +400,9 @@ def main(args: argparse.Namespace) -> None:
     with concurrent.futures.ProcessPoolExecutor() as executor:
         tasks = []
         for video_id in args.video_ids:
-            input_files = [
-                Path(str(template).format(video_id=video_id))
-                for template in args.input_file_templates
-            ]
-            str_output_file = Path(
-                str(args.str_output_file_template).format(video_id=video_id)
-            )
-            cnt_output_file = Path(
-                str(args.cnt_output_file_template).format(video_id=video_id)
-            )
+            input_files = [Path(str(template).format(video_id=video_id)) for template in args.input_file_templates]
+            str_output_file = Path(str(args.str_output_file_template).format(video_id=video_id))
+            cnt_output_file = Path(str(args.cnt_output_file_template).format(video_id=video_id))
             task = executor.submit(
                 process_video_id,
                 input_files,
