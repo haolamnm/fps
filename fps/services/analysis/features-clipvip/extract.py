@@ -24,9 +24,7 @@ from .clipvip.clipvip.CLIP_VIP import CLIPModel
 logger = get_logger(__name__)
 
 
-def read_video_pyav(
-    container: InputContainer, indices: np.ndarray, start_time: float, total_frames: int
-) -> np.ndarray:
+def read_video_pyav(container: InputContainer, indices: np.ndarray, start_time: float, total_frames: int) -> np.ndarray:
     frames: list[av.VideoFrame] = []
     start_time_tb = int(start_time * av.time_base)
     container.seek(start_time_tb, any_frame=True)
@@ -62,9 +60,7 @@ def get_video_duration(video_path: Path, num_ffprobe_threads: int = 2) -> float:
         str(video_path),
     ]
     try:
-        result = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         duration = float(result.stdout.strip())
         return duration
     except (subprocess.CalledProcessError, ValueError) as e:
@@ -86,9 +82,7 @@ def get_video_dimensions(video_path: Path) -> tuple[int, int]:
         str(video_path),
     ]
     try:
-        result = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         width, height = map(int, result.stdout.strip().split("\n"))
         return width, height
     except (subprocess.CalledProcessError, ValueError) as e:
@@ -115,17 +109,13 @@ def load_scene(scene: Scene, min_scene_duration: float) -> np.ndarray:
         scene.end_time = min(video_duration, scene.end_time + min_scene_duration)
         scene_duration = scene.end_time - scene.start_time
 
-    with av.open(
-        scene.video_path.as_posix(), mode="r", metadata_errors="ignore"
-    ) as container:
+    with av.open(scene.video_path.as_posix(), mode="r", metadata_errors="ignore") as container:
         video_stream = container.streams.video[0]
 
         if video_stream.duration is not None and video_stream.time_base is not None:
             video_duration = float(video_stream.duration * video_stream.time_base)
             if video_duration - scene.start_time < 3:
-                logger.warning(
-                    f"Scene {scene._id} has less than 3 seconds of video left, using the last 3 seconds."
-                )
+                logger.warning(f"Scene {scene._id} has less than 3 seconds of video left, using the last 3 seconds.")
                 scene.start_time = video_duration - 3
 
         fps = video_stream.average_rate or video_stream.guessed_rate or 25
@@ -139,9 +129,7 @@ def load_scene(scene: Scene, min_scene_duration: float) -> np.ndarray:
         try:
             video = read_video_pyav(container, indices, scene.start_time, total_frames)
         except Exception as e:
-            logger.error(
-                f"Error reading video for scene {scene._id} at {scene.video_path}: {e}"
-            )
+            logger.error(f"Error reading video for scene {scene._id} at {scene.video_path}: {e}")
     gc.collect()
     return video
 
@@ -234,9 +222,7 @@ class CLIPVIPExtractor(BaseVideoExtractor):
             Path(__file__).parent / "checkpoint/pretrain_clipvip_base_16.pt",
             map_location=self.device,
         )
-        clean_dict = {
-            key.replace("clipmodel.", ""): value for key, value in raw_dict.items()
-        }
+        clean_dict = {key.replace("clipmodel.", ""): value for key, value in raw_dict.items()}
         self.model = CLIPModel(config=config)  # type: ignore
         self.model.load_state_dict(clean_dict, strict=False)
 
@@ -254,8 +240,7 @@ class CLIPVIPExtractor(BaseVideoExtractor):
         features = self.model.get_image_features(**inputs)
 
         records = [
-            FeatureRecord(_id="", feature_vector=feature.tolist())
-            for feature in features.detach().cpu().numpy()
+            FeatureRecord(_id="", feature_vector=feature.tolist()) for feature in features.detach().cpu().numpy()
         ]
         return records
 
