@@ -1,18 +1,15 @@
 import argparse
 import itertools
-import multiprocessing
-import os
 from pathlib import Path
-from queue import Empty
 from typing import Any
 
 import mmcv
-from .mmdetection.mmdet.apis import inference_detector, init_detector
 import numpy as np
 import torch
 
 from ...common.extractors import BaseObjectExtractor
 from ...common.types import ObjectRecord
+from .mmdetection.mmdet.apis import inference_detector, init_detector
 
 
 def convert_detections_to_record(
@@ -26,7 +23,7 @@ def convert_detections_to_record(
         raise ValueError(f"Unknown detector: {detector}")
 
     num_instances_per_class = map(len, boxes_and_scores)
-    labels = [[cls] * num for cls, num in zip(classes, num_instances_per_class)]
+    labels = [[cls] * num for cls, num in zip(classes, num_instances_per_class, strict=True)]
     labels = list(itertools.chain.from_iterable(labels))
 
     boxes_and_scores = np.concatenate(boxes_and_scores, axis=0)
@@ -68,11 +65,7 @@ class MMDetExtractor(BaseObjectExtractor):
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
-            "--detector",
-            type=str,
-            default="vfnet32-coco",
-            choices=list(cls.DETECTORS.keys()),
-            help="detector to use",
+            "--detector", type=str, default="vfnet32-coco", choices=list(cls.DETECTORS.keys()), help="detector to use"
         )
         super().add_arguments(parser)
 
@@ -93,9 +86,9 @@ class MMDetExtractor(BaseObjectExtractor):
             return convert_detections_to_record(
                 detections,
                 self.detector,
-                self.model.CLASSES,
+                self.model.CLASSES,  # type: ignore
                 image_hw,
-                frame_path.name,  # type: ignore
+                frame_path.name,
             )
 
     def extract_list(self, frame_paths: list[Path]) -> list[ObjectRecord]:
