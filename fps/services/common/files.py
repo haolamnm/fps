@@ -49,10 +49,7 @@ class FileHDF5:
             "features", shape=(0, 0), maxshape=(None, None), dtype=np.float32
         )
         # Load existing IDs into memory
-        self.ids = {
-            _id.decode(): index
-            for index, _id in enumerate(self.ids_dataset.astype("S16")[:])
-        }
+        self.ids = {_id.decode(): index for index, _id in enumerate(self.ids_dataset.astype("S16")[:])}
         if not self.read_only:
             self.file.attrs["features_name"] = self.features_name
 
@@ -105,9 +102,7 @@ class FileHDF5:
             self.features_dataset.resize((index + 1, dim))
 
         self.ids_dataset[index] = record._id.encode("utf-8")
-        self.features_dataset[index, :] = np.array(
-            record.feature_vector, dtype=np.float32
-        )
+        self.features_dataset[index, :] = np.array(record.feature_vector, dtype=np.float32)
 
         self.flush_counter += 1
         if self.flush_counter >= self.flush_interval:
@@ -183,9 +178,7 @@ class FileJSONL:
             return
 
         self.ids.add(record._id)
-        filtered_record = {
-            key: value for key, value in asdict(record).items() if value is not None
-        }
+        filtered_record = {key: value for key, value in asdict(record).items() if value is not None}
         self.file.write(json.dumps(filtered_record, ensure_ascii=False) + "\n")
 
         self.flush_counter += 1

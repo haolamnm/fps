@@ -83,17 +83,11 @@ class BaseFrameExtractor(BaseExtractor):
 
     def _load_frames(self) -> list[Frame]:
         if not self.frames_dir.is_dir():
-            raise ValueError(
-                f"Frames directory '{self.frames_dir}' does not exist or is not a directory"
-            )
+            raise ValueError(f"Frames directory '{self.frames_dir}' does not exist or is not a directory")
         frames: list[Frame] = []
-        frame_paths = sorted(self.frames_dir.glob("*.jpg")) or sorted(
-            self.frames_dir.glob("*.png")
-        )
+        frame_paths = sorted(self.frames_dir.glob("*.jpg")) or sorted(self.frames_dir.glob("*.png"))
         for frame_path in frame_paths:
-            frame = Frame(
-                video_id=self.frames_dir.name, _id=frame_path.stem, path=frame_path
-            )
+            frame = Frame(video_id=self.frames_dir.name, _id=frame_path.stem, path=frame_path)
             frames.append(frame)
 
         if not frames:
@@ -133,12 +127,8 @@ class BaseFrameExtractor(BaseExtractor):
                 skipping_frames: list[Frame] = []
                 for video_id, frame_id, frame_path in group:
                     if frame_id not in file:
-                        skipping_frames.append(
-                            Frame(video_id=video_id, _id=frame_id, path=frame_path)
-                        )
-            logger.info(
-                f"Skipping {len(frames) - len(skipping_frames)} frames for video '{video_id}'"
-            )
+                        skipping_frames.append(Frame(video_id=video_id, _id=frame_id, path=frame_path))
+            logger.info(f"Skipping {len(frames) - len(skipping_frames)} frames for video '{video_id}'")
             yield from skipping_frames
 
     def run(self) -> None:
@@ -152,9 +142,7 @@ class BaseFrameExtractor(BaseExtractor):
             return
 
         # Unpack frames into video IDs, frame IDs, and paths
-        video_ids, frame_ids, frame_paths = zip(
-            *[(frame.video_id, frame._id, frame.path) for frame in frames]
-        )
+        video_ids, frame_ids, frame_paths = zip(*[(frame.video_id, frame._id, frame.path) for frame in frames])
         records = self.extract_iterable(frame_paths)
 
         # Group records by video ID
@@ -168,8 +156,7 @@ class BaseFrameExtractor(BaseExtractor):
 
         for video_id, items in video_groups.items():
             feature_records = [
-                FeatureRecord(_id=frame_id, feature_vector=record.feature_vector)
-                for frame_id, record in items
+                FeatureRecord(_id=frame_id, feature_vector=record.feature_vector) for frame_id, record in items
             ]
             with self._get_output_file(video_id, read_only=False) as file:
                 file.save_all(feature_records, force=self.force)
@@ -202,17 +189,11 @@ class BaseObjectExtractor(BaseExtractor):
 
     def _load_frames(self) -> list[Frame]:
         if not self.frames_dir.is_dir():
-            raise ValueError(
-                f"Frames directory '{self.frames_dir}' does not exist or is not a directory"
-            )
+            raise ValueError(f"Frames directory '{self.frames_dir}' does not exist or is not a directory")
         frames: list[Frame] = []
-        frame_paths = sorted(self.frames_dir.glob("*.jpg")) or sorted(
-            self.frames_dir.glob("*.png")
-        )
+        frame_paths = sorted(self.frames_dir.glob("*.jpg")) or sorted(self.frames_dir.glob("*.png"))
         for frame_path in frame_paths:
-            frame = Frame(
-                video_id=self.frames_dir.name, _id=frame_path.stem, path=frame_path
-            )
+            frame = Frame(video_id=self.frames_dir.name, _id=frame_path.stem, path=frame_path)
             frames.append(frame)
 
         if not frames:
@@ -250,12 +231,8 @@ class BaseObjectExtractor(BaseExtractor):
                 skipping_frames: list[Frame] = []
                 for video_id, frame_id, frame_path in group:
                     if frame_id not in file:
-                        skipping_frames.append(
-                            Frame(video_id=video_id, _id=frame_id, path=frame_path)
-                        )
-            logger.info(
-                f"Skipping {len(frames) - len(skipping_frames)} frames for video '{video_id}'"
-            )
+                        skipping_frames.append(Frame(video_id=video_id, _id=frame_id, path=frame_path))
+            logger.info(f"Skipping {len(frames) - len(skipping_frames)} frames for video '{video_id}'")
             yield from skipping_frames
 
     def run(self) -> None:
@@ -269,9 +246,7 @@ class BaseObjectExtractor(BaseExtractor):
             return
 
         # Unpack frames into video IDs, frame IDs, and paths
-        video_ids, frame_ids, frame_paths = zip(
-            *[(frame.video_id, frame._id, frame.path) for frame in frames]
-        )
+        video_ids, frame_ids, frame_paths = zip(*[(frame.video_id, frame._id, frame.path) for frame in frames])
         records = self.extract_iterable(frame_paths)
 
         # Group records by video ID
@@ -284,10 +259,7 @@ class BaseObjectExtractor(BaseExtractor):
         num_records = sum(len(items) for items in video_groups.values())
 
         for video_id, items in video_groups.items():
-            object_records = [
-                ObjectRecord(**{"_id": frame_id, **asdict(record)})
-                for frame_id, record in items
-            ]
+            object_records = [ObjectRecord(**{"_id": frame_id, **asdict(record)}) for frame_id, record in items]
             with self._get_output_file(video_id) as file:
                 file.save_all(object_records, force=self.force)
 
@@ -327,13 +299,9 @@ class BaseVideoExtractor(BaseExtractor):
 
     def _load_frames(self) -> Iterator[Scene]:
         if not self.frames_dir.is_dir():
-            raise ValueError(
-                f"Frames directory '{self.frames_dir}' does not exist or is not a directory"
-            )
+            raise ValueError(f"Frames directory '{self.frames_dir}' does not exist or is not a directory")
 
-        frame_paths = sorted(self.frames_dir.glob("*.jpg")) or sorted(
-            self.frames_dir.glob("*.png")
-        )
+        frame_paths = sorted(self.frames_dir.glob("*.jpg")) or sorted(self.frames_dir.glob("*.png"))
         if not frame_paths:
             raise ValueError(f"No frames found in directory '{self.frames_dir}'")
 
@@ -343,9 +311,7 @@ class BaseVideoExtractor(BaseExtractor):
 
         # For each video, read the 'scenes.csv" file to get scene metadata
         for video_id, group in itertools.groupby(frames, key=lambda x: x[0]):
-            frame_ids, frame_paths = zip(
-                *((frame_id, frame_path) for _, frame_id, frame_path in group)
-            )
+            frame_ids, frame_paths = zip(*((frame_id, frame_path) for _, frame_id, frame_path in group))
             frame_ids = list(map(str, frame_ids))
             frame_paths = list(map(Path, frame_paths))
 
@@ -356,14 +322,10 @@ class BaseVideoExtractor(BaseExtractor):
             escaped_video_id = re.escape(video_id)
             candidates = (scenes_file.parents[2] / "videos").glob(f"{video_id}.*")
             video_paths = [
-                candidate
-                for candidate in candidates
-                if re.match(rf"{escaped_video_id}\.[0-9a-zA-Z]+", candidate.name)
+                candidate for candidate in candidates if re.match(rf"{escaped_video_id}\.[0-9a-zA-Z]+", candidate.name)
             ]
             if not video_paths:
-                raise ValueError(
-                    f"Could not find video file for {video_id} in {scenes_file.parents[2] / 'videos'}"
-                )
+                raise ValueError(f"Could not find video file for {video_id} in {scenes_file.parents[2] / 'videos'}")
 
             video_path = video_paths[0]
             logger.info(f"Found video file {video_path} for video ID {video_id}")
@@ -384,13 +346,9 @@ class BaseVideoExtractor(BaseExtractor):
             for frame_id, frame_path in zip(frame_ids, frame_paths):
                 scene_id = int(re.split("[-_]", frame_path.stem)[-1])
                 if scene_id not in frame_id_to_metadata:
-                    logger.warning(
-                        f"Scene ID {scene_id} not found in {scenes_file}, skipping frame {frame_path}"
-                    )
+                    logger.warning(f"Scene ID {scene_id} not found in {scenes_file}, skipping frame {frame_path}")
                     continue
-                start_frame, start_time, end_frame, end_time = frame_id_to_metadata[
-                    scene_id
-                ]
+                start_frame, start_time, end_frame, end_time = frame_id_to_metadata[scene_id]
                 scene = Scene(
                     video_id=video_id,
                     _id=frame_id,
@@ -432,9 +390,7 @@ class BaseVideoExtractor(BaseExtractor):
                     if scene._id not in file:
                         skipping_scenes.append(scene)
 
-            logger.info(
-                f"Skipping {len(scenes) - len(skipping_scenes)} scenes for video '{video_id}'"
-            )
+            logger.info(f"Skipping {len(scenes) - len(skipping_scenes)} scenes for video '{video_id}'")
             yield from skipping_scenes
 
     def run(self) -> None:
@@ -457,8 +413,7 @@ class BaseVideoExtractor(BaseExtractor):
 
         for video_id, items in video_groups.items():
             feature_records = [
-                FeatureRecord(_id=scene_id, feature_vector=record.feature_vector)
-                for scene_id, record in items
+                FeatureRecord(_id=scene_id, feature_vector=record.feature_vector) for scene_id, record in items
             ]
             with self._get_output_file(video_id, read_only=False) as file:
                 file.save_all(feature_records, force=self.force)
