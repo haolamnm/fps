@@ -1,7 +1,6 @@
 import argparse
 
 import torch
-import torch.nn.functional as F
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +21,7 @@ class CLIPVIPQueryEncoder:
         with torch.no_grad():
             tokens = self.tokenizer(query, return_tensors="pt", padding=True)
             embeddings = self.model.get_text_features(**tokens)  # type: ignore
-            embeddings = F.normalize(embeddings, dim=-1, p=2)
+            embeddings = torch.nn.functional.normalize(embeddings, dim=-1, p=2)
             return embeddings.squeeze().cpu().numpy().tolist()
 
 
@@ -54,7 +53,7 @@ def create_app(model_name: str) -> FastAPI:
             feature_vector = encoder.encode(query)
             return {"feature_vector": feature_vector, "length": len(feature_vector)}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     return app
 
