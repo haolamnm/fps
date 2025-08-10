@@ -1,21 +1,20 @@
-import shutil
-import subprocess
-import threading
-from pathlib import Path
 import argparse
 import logging
+import shutil
+import threading
+from pathlib import Path
 
-import torch.cuda
 import numpy as np
 import pandas as pd
-from ..services.common.utils import get_logger
+import torch.cuda
 
+from ..services.common.utils import get_logger
 from .constants import (
-    SUCCESS_EXIT_CODE,
-    FAILURE_EXIT_CODE,
-    SUPPORTED_VIDEO_FORMATS,
     DEFAULT_DETECTION_PARAMS,
+    SUCCESS_EXIT_CODE,
+    SUPPORTED_VIDEO_FORMATS,
 )
+from .utils import run_command
 
 logger = get_logger(__name__)
 
@@ -33,30 +32,30 @@ def seconds_to_timecode(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
 
 
+# Constant fields in the scenes CSV
+SCENE_NUMBER = "Scene Number"
+START_FRAME = "Start Frame"
+START_TIMECODE = "Start Timecode"
+START_SECONDS = "Start Time (seconds)"
+END_FRAME = "End Frame"
+END_TIMECODE = "End Timecode"
+END_SECONDS = "End Time (seconds)"
+LENGTH_FRAMES = "Length (frames)"
+LENGTH_TIMECODE = "Length (timecode)"
+LENGTH_SECONDS = "Length (seconds)"
+
+
 def post_process_scenes(scenes_file: Path, max_length: float) -> None:
     """
     Post-process scenes to split them into smaller segments if they exceed max_length.
     """
-    # Constant fields in the scenes CSV
-    SCENE_NUMBER = "Scene Number"
-    START_FRAME = "Start Frame"
-    START_TIMECODE = "Start Timecode"
-    START_SECONDS = "Start Time (seconds)"
-    END_FRAME = "End Frame"
-    END_TIMECODE = "End Timecode"
-    END_SECONDS = "End Time (seconds)"
-    LENGTH_FRAMES = "Length (frames)"
-    LENGTH_TIMECODE = "Length (timecode)"
-    LENGTH_SECONDS = "Length (seconds)"
 
     # Read the scenes CSV file
     if not scenes_file.exists():
         raise FileNotFoundError(f"Scenes file {scenes_file} does not exist")
     scenes_df = pd.read_csv(scenes_file)
 
-    fps_estimate: float = (
-        scenes_df.iloc[-1][END_FRAME] / scenes_df.iloc[-1][END_SECONDS]
-    )
+    fps_estimate: float = scenes_df.iloc[-1][END_FRAME] / scenes_df.iloc[-1][END_SECONDS]
     splitted_scenes = []
 
     # For each scene, check if it exceeds max_length and split if necessary
@@ -94,9 +93,7 @@ def post_process_scenes(scenes_file: Path, max_length: float) -> None:
 
         # Otherwise, split the scene into smaller segments
         num_splits = np.ceil(scene_len_seconds / max_length).astype(int)
-        split_frames = np.linspace(
-            scene_start_frame, scene_end_frame, num_splits + 1
-        ).astype(int)
+        split_frames = np.linspace(scene_start_frame, scene_end_frame, num_splits + 1).astype(int)
         split_times = (split_frames - 1) / fps_estimate
         split_timecode = seconds_to_timecode(split_times)
         split_lengths_seconds = np.diff(split_times)
@@ -153,9 +150,7 @@ def copy_video(
     return video_id, target_path
 
 
-def build_resize_command(
-    input_path: Path, tiny_output: Path, medium_output: Path
-) -> list[str]:
+def build_resize_command(input_path: Path, tiny_output: Path, medium_output: Path) -> list[str]:
     """
     Function to build the ffmpeg command for resizing videos.
     """
@@ -256,39 +251,13 @@ def create_resized_videos(
 
     # Check for existing resized videos
     if not force and tiny_video_file.exists() and medium_video_file.exists():
-        logger.debug(
-            f"Skipping video {video_id}, already exist at {tiny_video_file} and {medium_video_file}"
-        )
+        logger.debug(f"Skipping video {video_id}, already exist at {tiny_video_file} and {medium_video_file}")
         return SUCCESS_EXIT_CODE
 
     # Otherwise, create resized videos
     command = build_resize_command(video_path, tiny_video_file, medium_video_file)
     logger.debug(f"Running command: {' '.join(command)}")
-
-    try:
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        return SUCCESS_EXIT_CODE
-    except subprocess.CalledProcessError as e:
-        logger.error(
-            f"Error creating resized videos for {video_id}: {e.stderr.strip()}"
-        )
-        return e.returncode
-    except FileNotFoundError as e:
-        logger.error(
-            f"Error creating resized videos for {video_id}: {str(e)}. Ensure ffmpeg is installed and in PATH"
-        )
-        return FAILURE_EXIT_CODE
-    except Exception as e:
-        logger.error(
-            f"Unexpected error creating resized videos for {video_id}: {str(e)}"
-        )
-        return FAILURE_EXIT_CODE
+    return run_command(command, video_id, "creating resized videos")
 
 
 def detect_scenes(
@@ -330,30 +299,12 @@ def detect_scenes(
         + ["list-scenes", "--filename", f"{video_id}-scenes"]
     )
     logger.debug(f"Running command: {' '.join(command)}")
-
-    try:
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error detecting scenes for {video_id}: {e.stderr.strip()}")
-        return e.returncode
-    except FileNotFoundError as e:
-        logger.error(
-            f"Error detecting scenes for {video_id}: {str(e)}. Ensure scenedetect is installed and in PATH"
-        )
-        return FAILURE_EXIT_CODE
+    run_command(command, video_id, "detecting scenes")
 
     # Post-process detected scences
     if scene_max_length > 0:
         post_process_scenes(scene_csv_file, scene_max_length)
-        logger.debug(
-            f"Post-processed scenes for {video_id} with max length {scene_max_length} seconds"
-        )
+        logger.debug(f"Post-processed scenes for {video_id} with max length {scene_max_length} seconds")
 
     return SUCCESS_EXIT_CODE
 
@@ -381,14 +332,12 @@ def extract_frames(
         """
         if not scenes_csv_file.exists():
             return False
-        with open(scenes_csv_file, "r") as file:
+        with open(scenes_csv_file) as file:
             return len(file.readlines()) - 1 == len(selected_frames_files)
 
     # Check if frames have already been extracted
     if not force and scenes_csv_file.exists() and can_skip():
-        logger.debug(
-            f"Skipping video {video_id}, already exists in {selected_frames_dir / '*.png'}"
-        )
+        logger.debug(f"Skipping video {video_id}, already exists in {selected_frames_dir / '*.png'}")
         return SUCCESS_EXIT_CODE
 
     # Otherwise, extract frames using scenedetect
@@ -409,27 +358,7 @@ def extract_frames(
         f"{video_id}-$SCENE_NUMBER",
     ]
     logger.debug(f"Running command: {' '.join(command)}")
-
-    try:
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        return SUCCESS_EXIT_CODE
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error extracting frames for {video_id}: {e.stderr.strip()}")
-        return e.returncode
-    except FileNotFoundError as e:
-        logger.error(
-            f"Error extracting frames for {video_id}: {str(e)}. Ensure scenedetect is installed and in PATH"
-        )
-        return FAILURE_EXIT_CODE
-    except Exception as e:
-        logger.error(f"Unexpected error extracting frames for {video_id}: {str(e)}")
-        return FAILURE_EXIT_CODE
+    return run_command(command, video_id, "extracting frames")
 
 
 def create_thumbnails(
@@ -453,18 +382,12 @@ def create_thumbnails(
     thumbnail_files = sorted(thumbnails_dir.glob("*.jpg"))
 
     # Check if thumbnails already exist
-    if not force and [f.stem for f in thumbnail_files] == [
-        f.stem for f in selected_frames_files
-    ]:
-        logger.debug(
-            f"Skipping video {video_id}, already exists in {thumbnails_dir / '*.jpg'}"
-        )
+    if not force and [f.stem for f in thumbnail_files] == [f.stem for f in selected_frames_files]:
+        logger.debug(f"Skipping video {video_id}, already exists in {thumbnails_dir / '*.jpg'}")
         return SUCCESS_EXIT_CODE
 
     if not selected_frames_files:
-        raise FileNotFoundError(
-            f"No selected frames found for {video_id} in {selected_frames_dir}"
-        )
+        raise FileNotFoundError(f"No selected frames found for {video_id} in {selected_frames_dir}")
 
     num_digits = len(selected_frames_files[0].stem.split("-")[-1])
 
@@ -488,26 +411,7 @@ def create_thumbnails(
         str(ouput_pattern),
     ]
     logger.debug(f"Running command: {' '.join(command)}")
-    try:
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        return SUCCESS_EXIT_CODE
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error creating thumbnails for {video_id}: {e.stderr.strip()}")
-        return e.returncode
-    except FileNotFoundError as e:
-        logger.error(
-            f"Error creating thumbnails for {video_id}: {str(e)}. Ensure ffmpeg is installed and in PATH"
-        )
-        return FAILURE_EXIT_CODE
-    except Exception as e:
-        logger.error(f"Unexpected error creating thumbnails for {video_id}: {str(e)}")
-        return FAILURE_EXIT_CODE
+    return run_command(command, video_id, "creating thumbnails")
 
 
 def import_video(
@@ -579,13 +483,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--replace",
+        default=False,
         action="store_true",
-        help="replace any existing video with the same ID",
+        help="replace any existing video with the same ID (default: false)",
     )
     parser.add_argument(
         "--verbose",
+        default=False,
         action="store_true",
-        help="enable verbose logging",
+        help="enable verbose logging for debug (default: false)",
     )
     parser.add_argument(
         "--scene-detection-params",
@@ -610,15 +516,13 @@ if __name__ == "__main__":
     scene_detection_params: list[str] = args.scene_detection_params
     scene_max_length: float = args.scene_max_length
 
-    if not verbose:
-        logging.basicConfig(level=logging.INFO)
+    if verbose:
+        logger.setLevel(logging.DEBUG)
     else:
-        logging.basicConfig(level=logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
     # Use all paths is specify a directory and no ID is given
-    assert not (video_id and video_path is None), (
-        "Cannot specify ID without a video path"
-    )
+    assert not (video_id and video_path is None), "Cannot specify ID without a video path"
     use_all_paths = video_path.is_dir() and not video_id
 
     if use_all_paths:
