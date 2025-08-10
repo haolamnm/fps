@@ -31,9 +31,7 @@ def get_video_duration(video_path: Path, num_ffprobe_threads: int = 2) -> float:
         str(video_path),
     ]
     try:
-        result = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         duration = float(result.stdout.strip())
         return duration
     except (subprocess.CalledProcessError, ValueError) as e:
@@ -83,14 +81,10 @@ def load_scene(
             f"Scene {scene._id} has {scene_duration} seconds, which is less than the minimum "
             f"{scene_config.min_scene_duration} seconds. Padding scene to minimum duration."
         )
-        video_duration = get_video_duration(
-            scene.video_path, scene_config.num_ffmpeg_threads
-        )
+        video_duration = get_video_duration(scene.video_path, scene_config.num_ffmpeg_threads)
         padding = (scene_config.min_scene_duration - scene_duration) / 2
         scene.start_time = max(0, scene.start_time - padding)
-        scene.end_time = min(
-            video_duration, scene.end_time + scene_config.min_scene_duration
-        )
+        scene.end_time = min(video_duration, scene.end_time + scene_config.min_scene_duration)
         scene_duration = scene.end_time - scene.start_time
 
     cmd = [
@@ -127,12 +121,7 @@ def load_scene(
         return video, video_mask, scene._id
 
     try:
-        video = (
-            torch.frombuffer(video_bytes, dtype=torch.uint8)
-            .reshape(-1, 240, 320, 3)
-            .detach()
-            .clone()
-        )
+        video = torch.frombuffer(video_bytes, dtype=torch.uint8).reshape(-1, 240, 320, 3).detach().clone()
     except Exception as e:
         logger.error(f"Failed to reshape video bytes for scene {scene._id}: {e}")
         return video, video_mask, scene._id
@@ -245,11 +234,8 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
             frame_size=args.input_size,
             frame_transform=T.Compose(
                 [
-                    T.Resize(
-                        args.input_size, interpolation=T.InterpolationMode.BICUBIC
-                    ),
+                    T.Resize(args.input_size, interpolation=T.InterpolationMode.BICUBIC),
                     T.CenterCrop(args.input_size),
-                    # T.ToTensor(),
                     T.Normalize(
                         (0.48145466, 0.4578275, 0.40821073),
                         (0.26862954, 0.26130258, 0.27577711),
@@ -264,13 +250,9 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
         )
         self.model = load_model(self.config, self.device)
         self.model.eval()
-        logger.info(
-            f"Loaded model at {self.config.checkpoint_dir} on device {self.device.type}"
-        )
+        logger.info(f"Loaded model at {self.config.checkpoint_dir} on device {self.device.type}")
 
-    def forward_batch(
-        self, batch: tuple[torch.Tensor, torch.Tensor, list[str]]
-    ) -> list[FeatureRecord]:
+    def forward_batch(self, batch: tuple[torch.Tensor, torch.Tensor, list[str]]) -> list[FeatureRecord]:
         video, video_mask, scene_ids = batch
         video, video_mask = video.to(self.device), video_mask.to(self.device)
 
@@ -287,9 +269,7 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
 
     def extract_list(self, scenes: list[Scene]) -> list[FeatureRecord]:
         dataset = CLIP2VideoListDataset(scenes, self.scene_config)
-        dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=self.batch_size, num_workers=self.num_workers
-        )
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, num_workers=self.num_workers)
         with torch.no_grad():
             raw_records: list[list[FeatureRecord]] = []
             for batch in dataloader:

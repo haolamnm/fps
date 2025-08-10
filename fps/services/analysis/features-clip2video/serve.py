@@ -15,9 +15,7 @@ class CLIP2VideoQueryEncoder:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.config.gpu = torch.cuda.is_available()
-        self.device, self.num_gpu = get_device(
-            self.config, local_rank=self.config.local_rank
-        )
+        self.device, self.num_gpu = get_device(self.config, local_rank=self.config.local_rank)
 
         self.tokenizer = CLIPTokenizer()
         self.SPECIAL_TOKENS = {
