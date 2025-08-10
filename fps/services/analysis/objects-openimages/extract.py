@@ -1,8 +1,3 @@
-import os
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-
 import argparse
 import logging
 from pathlib import Path
@@ -52,7 +47,7 @@ def get_record(detection_raw: dict[str, tf.Tensor]) -> ObjectRecord:
         _id="",
         detector="frcnn-oiv4",
         labels=detection_data.get("detection_class_labels", []),
-        entities=detection_data.get("detection_class_names", []),  #
+        entities=detection_data.get("detection_class_names", []),
         names=detection_data.get("detection_class_entities", []),
         yxyx_boxes=detection_data.get("detection_boxes", []),
         scores=detection_data.get("detection_scores", []),
