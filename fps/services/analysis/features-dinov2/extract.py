@@ -12,9 +12,7 @@ from ...common.extractors import BaseFrameExtractor
 from ...common.types import FeatureRecord
 from ...common.utils import get_logger
 
-warnings.filterwarnings(
-    "ignore", category=UserWarning, message="xFormers is not available*"
-)
+warnings.filterwarnings("ignore", category=UserWarning, message="xFormers is not available*")
 
 logger = get_logger(__name__)
 

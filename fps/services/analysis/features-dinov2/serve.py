@@ -12,9 +12,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
-warnings.filterwarnings(
-    "ignore", category=UserWarning, message="xFormers is not available*"
-)
+warnings.filterwarnings("ignore", category=UserWarning, message="xFormers is not available*")
 
 
 class DinoV2FrameEncoder:
