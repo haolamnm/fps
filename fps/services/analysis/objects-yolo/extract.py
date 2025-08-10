@@ -25,9 +25,7 @@ def load_image_pil(image_path: Path) -> tuple[np.ndarray, int, int]:
         raise RuntimeError(f"Failed to load image {image_path}: {e}") from e
 
 
-def convert_xyxy_to_yxyx_boxes(
-    xyxy_boxes: np.ndarray, image_width: int, image_height: int
-) -> np.ndarray:
+def convert_xyxy_to_yxyx_boxes(xyxy_boxes: np.ndarray, image_width: int, image_height: int) -> np.ndarray:
     xyxy_boxes_np = np.array(xyxy_boxes, dtype=np.float32)
 
     # Make sure the input is a 2D array
@@ -53,9 +51,9 @@ def convert_xyxy_to_yxyx_boxes(
 def get_record(results: Any, image_width: int, image_height: int) -> ObjectRecord:
     try:
         xyxy_boxes = results.boxes.xyxy.cpu().numpy()
-        yxyx_boxes: list[tuple[float, float, float, float]] = (
-            convert_xyxy_to_yxyx_boxes(xyxy_boxes, image_width, image_height).tolist()
-        )
+        yxyx_boxes: list[tuple[float, float, float, float]] = convert_xyxy_to_yxyx_boxes(
+            xyxy_boxes, image_width, image_height
+        ).tolist()
         scores: list[float] = results.boxes.conf.cpu().numpy().tolist()
         labels: list[int] = results.boxes.cls.cpu().numpy().tolist()
         names: list[str] = [results.names[int(label)] for label in labels]
@@ -111,9 +109,7 @@ class YoloExtractor(BaseObjectExtractor):
                 record = get_record(result, width, height)
                 record._id = frame_path.stem
 
-                logger.info(
-                    f"Processed {record._id} with {len(record.labels or [])} labels"
-                )
+                logger.info(f"Processed {record._id} with {len(record.labels or [])} labels")
                 yield record
             except Exception as e:
                 logger.error(f"Failed to process {frame_path}: {e}")

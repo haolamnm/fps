@@ -45,8 +45,7 @@ def get_record(detection_raw: dict[str, tf.Tensor]) -> ObjectRecord:
     for field in ("detection_class_names", "detection_class_entities"):
         if field in detection_data:
             detection_data[field] = [
-                label.decode("utf-8") if isinstance(label, bytes) else label
-                for label in detection_data[field]
+                label.decode("utf-8") if isinstance(label, bytes) else label for label in detection_data[field]
             ]
 
     record = ObjectRecord(
@@ -110,9 +109,7 @@ class OpenImagesExtractor(BaseObjectExtractor):
             try:
                 record = self.extract_path(frame_path)
                 records.append(record)
-                logger.info(
-                    f"Processed {record._id} with {len(record.labels or [])} labels"
-                )
+                logger.info(f"Processed {record._id} with {len(record.labels or [])} labels")
             except Exception as e:
                 logger.error(f"Error processing {frame_path}: {e}")
         return records

@@ -88,8 +88,7 @@ def extract_colors(
                 # If dominant_only is False, find associated colors
                 if not dominant_only:
                     is_associated = (
-                        (color_areas >= associated_threshold)
-                        & ((color_areas / dominant_area) >= quotient_threshold)
+                        (color_areas >= associated_threshold) & ((color_areas / dominant_area) >= quotient_threshold)
                     ).astype(bool)
                     is_associated[dominant_index] = False
 
@@ -214,9 +213,7 @@ class ColorsExtractor(BaseObjectExtractor):
         column_names = ["R", "G", "B"] + list(range(num_colors))
 
         def read_color_table(path: Path) -> np.ndarray:
-            color_table = pd.read_csv(
-                path, names=column_names, index_col=["R", "G", "B"], sep=r"\s+"
-            )
+            color_table = pd.read_csv(path, names=column_names, index_col=["R", "G", "B"], sep=r"\s+")
             pixel_color_mapping = pd.Series(color_table.idxmax(axis=1)).to_numpy()
             logger.info(f"Loaded color table from {path}")
             return pixel_color_mapping
@@ -248,12 +245,8 @@ class ColorsExtractor(BaseObjectExtractor):
             quotient_threshold=self.quotient_threshold,
             dominant_only=self.dominant_only,
         )
-        color_table = merge_colors(
-            [josa_colors, w2c_colors], keep_duplicates=self.keep_duplicates
-        )
-        record = convert_table_to_record(
-            color_table, LABEL_MAP, self.num_rows, self.num_cols
-        )
+        color_table = merge_colors([josa_colors, w2c_colors], keep_duplicates=self.keep_duplicates)
+        record = convert_table_to_record(color_table, LABEL_MAP, self.num_rows, self.num_cols)
         record.monochrome = compute_monochromaticity(image_np)
         record._id = frame_path.stem
         return record
@@ -262,9 +255,7 @@ class ColorsExtractor(BaseObjectExtractor):
         chunk_size = multiprocessing.cpu_count()
 
         with multiprocessing.Pool() as pool:
-            for record in pool.imap_unordered(
-                self.extract_path, frame_paths, chunksize=chunk_size
-            ):
+            for record in pool.imap_unordered(self.extract_path, frame_paths, chunksize=chunk_size):
                 logger.info(f"Extracted colors for {record._id}")
                 yield record
 

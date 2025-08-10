@@ -52,25 +52,16 @@ class MMDetExtractor(BaseObjectExtractor):
 
     DETECTORS = {
         "vfnet32-coco": {
-            "config": CONFIG_DIR
-            / "vfnet"
-            / "vfnet_x101_32x4d_fpn_mdconv_c3-c5_mstrain_2x_coco.py",
-            "checkpoint": CHECKPOINT_DIR
-            / "vfnet_x101_32x4d_fpn_mdconv_c3-c5_mstrain_2x_coco_20201027pth-d300a6fc.pth",
+            "config": CONFIG_DIR / "vfnet" / "vfnet_x101_32x4d_fpn_mdconv_c3-c5_mstrain_2x_coco.py",
+            "checkpoint": CHECKPOINT_DIR / "vfnet_x101_32x4d_fpn_mdconv_c3-c5_mstrain_2x_coco_20201027pth-d300a6fc.pth",
         },
         "vfnet64-coco": {
-            "config": CONFIG_DIR
-            / "vfnet"
-            / "vfnet_x101_64x4d_fpn_mdconv_c3-c5_mstrain_2x_coco.py",
-            "checkpoint": CHECKPOINT_DIR
-            / "vfnet_x101_64x4d_fpn_mdconv_c3-c5_mstrain_2x_coco_20201027pth-b5f6da5e.pth",
+            "config": CONFIG_DIR / "vfnet" / "vfnet_x101_64x4d_fpn_mdconv_c3-c5_mstrain_2x_coco.py",
+            "checkpoint": CHECKPOINT_DIR / "vfnet_x101_64x4d_fpn_mdconv_c3-c5_mstrain_2x_coco_20201027pth-b5f6da5e.pth",
         },
         "mrcnn-lvis": {
-            "config": CONFIG_DIR
-            / "lvis"
-            / "mask_rcnn_x101_64x4d_fpn_sample1e-3_mstrain_1x_lvis_v1.py",
-            "checkpoint": CHECKPOINT_DIR
-            / "mask_rcnn_x101_64x4d_fpn_sample1e-3_mstrain_1x_lvis_v1-43d9edfe.pth",
+            "config": CONFIG_DIR / "lvis" / "mask_rcnn_x101_64x4d_fpn_sample1e-3_mstrain_1x_lvis_v1.py",
+            "checkpoint": CHECKPOINT_DIR / "mask_rcnn_x101_64x4d_fpn_sample1e-3_mstrain_1x_lvis_v1-43d9edfe.pth",
         },
     }
 
@@ -100,7 +91,11 @@ class MMDetExtractor(BaseObjectExtractor):
             image_hw = image.shape[:2]
             detections = inference_detector(self.model, image)
             return convert_detections_to_record(
-                detections, self.detector, self.model.CLASSES, image_hw, frame_path.name # type: ignore
+                detections,
+                self.detector,
+                self.model.CLASSES,
+                image_hw,
+                frame_path.name,  # type: ignore
             )
 
     def extract_list(self, frame_paths: list[Path]) -> list[ObjectRecord]:
