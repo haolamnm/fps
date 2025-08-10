@@ -105,7 +105,7 @@ def create_app(config: Config) -> FastAPI:
             feature_vector = encoder.encode(query)
             return {"feature_vector": feature_vector, "length": len(feature_vector)}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     return app
 

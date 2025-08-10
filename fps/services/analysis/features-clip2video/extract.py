@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torchvision.transforms as T
+import torchvision
 
 from ...common.extractors import BaseVideoExtractor
 from ...common.types import FeatureRecord, Scene
@@ -46,7 +46,7 @@ class SceneConfig:
     max_frames: int = 100
     frame_sampling_rate: int = 2
     frame_size: int = 224
-    frame_transform: T.Compose | None = None
+    frame_transform: torchvision.transforms.Compose | None = None
     num_ffmpeg_threads: int = 2
 
 
@@ -232,11 +232,13 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
             max_frames=self.config.max_frames,
             frame_sampling_rate=self.config.feature_framerate,
             frame_size=args.input_size,
-            frame_transform=T.Compose(
+            frame_transform=torchvision.transforms.Compose(
                 [
-                    T.Resize(args.input_size, interpolation=T.InterpolationMode.BICUBIC),
-                    T.CenterCrop(args.input_size),
-                    T.Normalize(
+                    torchvision.transforms.Resize(
+                        args.input_size, interpolation=torchvision.transforms.InterpolationMode.BICUBIC
+                    ),
+                    torchvision.transforms.CenterCrop(args.input_size),
+                    torchvision.transforms.Normalize(
                         (0.48145466, 0.4578275, 0.40821073),
                         (0.26862954, 0.26130258, 0.27577711),
                     ),

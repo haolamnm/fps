@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 
 from .clip2video.modules.modeling import CLIP2Video as CLIP2VideoBaseModel
 
@@ -22,7 +21,7 @@ class CLIP2VideoModel(CLIP2VideoBaseModel):
             raise TypeError(f"Expected sequence_output to be a torch.Tensor, but got {type(sequence_output)}")
 
         sequence_output = sequence_output.squeeze(1).contiguous()
-        sequence_output = F.normalize(sequence_output, p=2, dim=-1)
+        sequence_output = torch.nn.functional.normalize(sequence_output, p=2, dim=-1)
         return sequence_output
 
     def get_video_features(
@@ -63,7 +62,7 @@ class CLIP2VideoModel(CLIP2VideoBaseModel):
             device=visual_output.device,
         )
         visual_output = visual_output[:, frame_position_id, :] + visual_output_original
-        visual_output = F.normalize(visual_output, p=2, dim=-1)
+        visual_output = torch.nn.functional.normalize(visual_output, p=2, dim=-1)
 
         # Masked mean pooling
         mask_f = video_mask.float().unsqueeze(-1)
@@ -73,6 +72,6 @@ class CLIP2VideoModel(CLIP2VideoBaseModel):
         visual_output = visual_output / denominator
 
         # Normalize the output
-        visual_output = F.normalize(visual_output, p=2, dim=-1)
+        visual_output = torch.nn.functional.normalize(visual_output, p=2, dim=-1)
 
         return visual_output
