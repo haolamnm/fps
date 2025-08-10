@@ -5,7 +5,6 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from torch.nn import functional as F
 from transformers import AutoModel, AutoTokenizer
 
 
@@ -22,7 +21,7 @@ class CLIPQueryEncoder:
         with torch.no_grad():
             inputs = self.tokenizer(query, padding=True, return_tensors="pt").to(self.device)
             feature = self.model.get_text_features(**inputs)  # type: ignore
-            feature = F.normalize(feature, dim=-1)
+            feature = torch.nn.functional.normalize(feature, dim=-1)
             return feature.squeeze().cpu().numpy().tolist()
 
 
@@ -54,7 +53,7 @@ def create_app(model_name: str) -> FastAPI:
             feature_vector = encoder.encode(query)
             return {"feature_vector": feature_vector, "length": len(feature_vector)}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
     return app
 

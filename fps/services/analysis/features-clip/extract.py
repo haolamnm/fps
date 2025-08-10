@@ -1,6 +1,7 @@
 import argparse
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 import torch
 import transformers
@@ -29,7 +30,7 @@ class FrameListDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def collate_fn(batch: list[dict[str, torch.Tensor]]) -> dict[str, torch.Tensor]:
-        return {key: torch.concat([item[key] for item in batch]) for key in batch[0].keys()}
+        return {key: torch.concat([item[key] for item in batch]) for key in batch[0]}
 
 
 class CLIPExtractor(BaseFrameExtractor):
@@ -107,7 +108,7 @@ class CLIPExtractor(BaseFrameExtractor):
                 outputs = self.model.get_image_features(**inputs)  # type: ignore
                 features = outputs.cpu().numpy()
 
-                for frame_path, feature in zip(frame_paths, features):
+                for frame_path, feature in zip(frame_paths, features, strict=True):
                     yield FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
 
 
