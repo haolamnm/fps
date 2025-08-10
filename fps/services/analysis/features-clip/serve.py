@@ -20,9 +20,7 @@ class CLIPQueryEncoder:
 
     def encode(self, query: str) -> list[float]:
         with torch.no_grad():
-            inputs = self.tokenizer(query, padding=True, return_tensors="pt").to(
-                self.device
-            )
+            inputs = self.tokenizer(query, padding=True, return_tensors="pt").to(self.device)
             feature = self.model.get_text_features(**inputs)  # type: ignore
             feature = F.normalize(feature, dim=-1)
             return feature.squeeze().cpu().numpy().tolist()

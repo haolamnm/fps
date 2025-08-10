@@ -29,9 +29,7 @@ class FrameListDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def collate_fn(batch: list[dict[str, torch.Tensor]]) -> dict[str, torch.Tensor]:
-        return {
-            key: torch.concat([item[key] for item in batch]) for key in batch[0].keys()
-        }
+        return {key: torch.concat([item[key] for item in batch]) for key in batch[0].keys()}
 
 
 class CLIPExtractor(BaseFrameExtractor):
@@ -70,9 +68,7 @@ class CLIPExtractor(BaseFrameExtractor):
         self.num_workers: int = args.num_workers
 
         self.device = "cuda" if torch.cuda.is_available() and self.gpu else "cpu"
-        self.processor = transformers.CLIPProcessor.from_pretrained(
-            self.model_name, use_fast=True
-        )
+        self.processor = transformers.CLIPProcessor.from_pretrained(self.model_name, use_fast=True)
         self.model = transformers.CLIPModel.from_pretrained(self.model_name).to(
             self.device  # type: ignore
         )
@@ -90,20 +86,14 @@ class CLIPExtractor(BaseFrameExtractor):
 
             if len(current_chunk) >= chunk_size:
                 logger.info(f"Processing chunk of {len(current_chunk)} frames")
-                yield from self._process_chunk(
-                    current_chunk, self.batch_size, self.num_workers
-                )
+                yield from self._process_chunk(current_chunk, self.batch_size, self.num_workers)
                 current_chunk = []
 
         if current_chunk:
             logger.info(f"Processing chunk of {len(current_chunk)} frames")
-            yield from self._process_chunk(
-                current_chunk, self.batch_size, self.num_workers
-            )
+            yield from self._process_chunk(current_chunk, self.batch_size, self.num_workers)
 
-    def _process_chunk(
-        self, frame_paths: list[Path], batch_size: int, num_workers: int
-    ) -> Iterator[FeatureRecord]:
+    def _process_chunk(self, frame_paths: list[Path], batch_size: int, num_workers: int) -> Iterator[FeatureRecord]:
         dataset = FrameListDataset(frame_paths, self.processor)
         dataloader = torch.utils.data.DataLoader(
             dataset,
@@ -118,9 +108,7 @@ class CLIPExtractor(BaseFrameExtractor):
                 features = outputs.cpu().numpy()
 
                 for frame_path, feature in zip(frame_paths, features):
-                    yield FeatureRecord(
-                        _id=frame_path.stem, feature_vector=feature.tolist()
-                    )
+                    yield FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
 
 
 if __name__ == "__main__":
