@@ -221,35 +221,35 @@ index:
       index_params:
         keep: 0.25
         dim_multiplier: 100
-        rectify_negatives: true
+        # rectify_negatives: true
 
-      aladin:
-        index_engine: str
-        index_type: topk-sq
-        index_params:
-          keep: 0.5
-          dim_multiplier: 2
+    aladin:
+      index_engine: str
+      index_type: topk-sq
+      index_params:
+        keep: 0.5
+        dim_multiplier: 2
 
-      clip-openai:
-        index_engine: faiss
-        index_type: Flat
+    clip-openai:
+      index_engine: faiss
+      index_type: Flat
 
-      clip-laion:
-        index_engine: faiss
-        index_type: Flat
+    clip-laion:
+      index_engine: faiss
+      index_type: Flat
 
-      clip-datacomp:
-        index_engine: faiss
-        index_type: Flat
+    clip-datacomp:
+      index_engine: faiss
+      index_type: Flat
 
-      biomed-clip:
-        index_engine: faiss
-        index_type: Flat
+    biomed-clip:
+      index_engine: faiss
+      index_type: Flat
 
-      clip2video:
-        index_engine: faiss
-        index_type: Flat
+    clip2video:
+      index_engine: faiss
+      index_type: Flat
 
-      clipvip:
-        index_engine: faiss
-        index_type: Flat
+    clipvip:
+      index_engine: faiss
+      index_type: Flat
