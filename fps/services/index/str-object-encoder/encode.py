@@ -7,10 +7,11 @@ import itertools
 import json
 import math
 import operator
+from collections.abc import Iterable, Iterator
 from dataclasses import asdict
 from functools import reduce
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 import pandas as pd
 
@@ -48,7 +49,7 @@ def process_record(record: ObjectRecord, config: dict[str, Any]) -> ObjectRecord
     # Parallel arrays to list of objects
     objects = (
         ObjectItem(detector=record.detector, label=label, score=score, yxyx_box=yxyx_box)
-        for label, score, yxyx_box in zip(labels, scores, yxyx_boxes)
+        for label, score, yxyx_box in zip(labels, scores, yxyx_boxes, strict=True)
     )
 
     # Filter by score threshold
@@ -103,8 +104,8 @@ def process_input_file(input_file_path: Path, config: dict[str, Any]) -> Iterato
     with gzip.open(input_file_path, "rt") as file:
         records = map(str.rstrip, file)
         records = map(json.loads, records)
-        records = map(lambda x: ObjectRecord(**x), records)
-        records = map(lambda x: process_record(x, config), records)
+        records = (ObjectRecord(**x) for x in records)
+        records = (process_record(x, config) for x in records)
         yield from records
 
 
@@ -285,8 +286,8 @@ def str_encode(record: ObjectRecord, thresholds: dict[str, float]) -> ObjectReco
     return ObjectRecord(
         _id=record._id,
         detector=record.detector,
-        boxes_str=_str_encode_positional_boxes(objects),
-        counts_str=_str_encode_counts(objects, monochrome, thresholds),
+        object_box_str=_str_encode_positional_boxes(objects),
+        object_cnt_str=_str_encode_counts(objects, monochrome, thresholds),
     )
 
 
@@ -326,12 +327,18 @@ def process_merged_record(
     # Perform Non-Maximum Suppression (NMS)
     record = apply_non_maximum_suppression(record)
 
+    # Get objects info after NMS for debugging
+    objects_after_nms = record.objects or []
+    object_info = get_objects_info(objects_after_nms)
+
     # Get the labels counter
     labels_counter = get_labels_counter(record)
 
     # Build the STR encoded representation
     thresholds = config.get("threshold", {})
     record = str_encode(record, thresholds)
+
+    record.object_info = object_info
 
     return record, labels_counter
 
@@ -353,13 +360,13 @@ def process_video_id(
     assert all(input_file.exists() for input_file in input_files), "One or more input files do not exist"
 
     # Apply per-detector processing
-    records = map(lambda x: process_input_file(x, config), input_files)
+    records = (process_input_file(x, config) for x in input_files)
 
     # Merge records of different detectors with the same _id
-    merged_records = map(merge_records, zip(*records))
+    merged_records = map(merge_records, zip(*records, strict=True))
 
     # Apply all processing steps (hypersets, NMS, counting, STR encoding)
-    records_and_counters = map(lambda x: process_merged_record(x, config, hypersets), merged_records)
+    records_and_counters = (process_merged_record(x, config, hypersets) for x in merged_records)
 
     # If forced, delete old file
     if force and str_output_file.exists():
