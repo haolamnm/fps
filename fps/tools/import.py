@@ -11,6 +11,16 @@ import torch.cuda
 from ..services.common.utils import get_logger
 from .constants import (
     DEFAULT_DETECTION_PARAMS,
+    END_FRAME,
+    END_SECONDS,
+    END_TIMECODE,
+    LENGTH_FRAMES,
+    LENGTH_SECONDS,
+    LENGTH_TIMECODE,
+    SCENE_NUMBER,
+    START_FRAME,
+    START_SECONDS,
+    START_TIMECODE,
     SUCCESS_EXIT_CODE,
     SUPPORTED_VIDEO_FORMATS,
 )
@@ -30,19 +40,6 @@ def seconds_to_timecode(seconds: float) -> str:
     milliseconds = int((seconds % 1) * 1000)
     seconds = int(seconds % 60)
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
-
-
-# Constant fields in the scenes CSV
-SCENE_NUMBER = "Scene Number"
-START_FRAME = "Start Frame"
-START_TIMECODE = "Start Timecode"
-START_SECONDS = "Start Time (seconds)"
-END_FRAME = "End Frame"
-END_TIMECODE = "End Timecode"
-END_SECONDS = "End Time (seconds)"
-LENGTH_FRAMES = "Length (frames)"
-LENGTH_TIMECODE = "Length (timecode)"
-LENGTH_SECONDS = "Length (seconds)"
 
 
 def post_process_scenes(scenes_file: Path, max_length: float) -> None:
