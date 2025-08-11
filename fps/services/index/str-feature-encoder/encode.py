@@ -2,8 +2,9 @@ import argparse
 import functools
 import itertools
 import random
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import h5py
 import numpy as np
@@ -123,12 +124,8 @@ def process_video_id(
 
         # Generate records
         records = [
-            ObjectRecord(
-                _id=str(_id),
-                detector="str",
-                feature_str=str_encoding,
-            )
-            for _id, str_encoding in zip(ids, str_encodings)
+            ObjectRecord(_id=str(_id), detector="str", feature_str=str_encoding)
+            for _id, str_encoding in zip(ids, str_encodings, strict=True)
         ]
         file.save_all(records)
 
