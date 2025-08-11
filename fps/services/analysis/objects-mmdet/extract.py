@@ -65,7 +65,7 @@ class MMDetExtractor(BaseObjectExtractor):
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
-            "--detector", type=str, default="vfnet32-coco", choices=list(cls.DETECTORS.keys()), help="detector to use"
+            "--detector", type=str, default="mrcnn-lvis", choices=list(cls.DETECTORS.keys()), help="detector to use"
         )
         super().add_arguments(parser)
 
