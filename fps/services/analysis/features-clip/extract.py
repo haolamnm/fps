@@ -106,7 +106,7 @@ class CLIPExtractor(BaseFrameExtractor):
             for batch in dataloader:
                 inputs = {key: value.to(self.device) for key, value in batch.items()}
                 outputs = self.model.get_image_features(**inputs)  # type: ignore
-                features = outputs.cpu().numpy()
+                features = torch.nn.functional.normalize(outputs, dim=-1, p=2).cpu().numpy()
 
                 for frame_path, feature in zip(frame_paths, features, strict=True):
                     yield FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
