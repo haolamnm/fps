@@ -38,8 +38,9 @@ class ObjectRecord:
 
     # STR-related fields
     feature_str: str | None = None
-    boxes_str: str | None = None
-    counts_str: str | None = None
+    object_box_str: str | None = None
+    object_cnt_str: str | None = None
+    object_info: str | None = None
 
 
 @dataclass
