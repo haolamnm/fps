@@ -104,7 +104,7 @@ def cluster_frames(features: str, video_id: str, collection_dir: Path, force: bo
     return run_command(command, video_id, "clustering frames")
 
 
-def analyze(
+def analyze_videos(
     video_ids: list[str], analyzers: list[str], collection_dir: Path, replace: bool, gpu: bool, config: dict[str, Any]
 ) -> None:
     analysis_config = config.get("analysis", {})
@@ -198,4 +198,4 @@ if __name__ == "__main__":
     else:
         logger.setLevel(logging.INFO)
 
-    analyze(video_ids, analyzers, collection_dir, replace, gpu, config)
+    analyze_videos(video_ids, analyzers, collection_dir, replace, gpu, config)
