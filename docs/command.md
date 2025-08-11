@@ -30,15 +30,27 @@ Step 2: Detect objects.
 Step 3: Cluster frames.
 
 ```bash
+python -m fps.tools.analyze ANALYZERS --id VIDEO_IDs
+```
+
+For example, to detect `colors` from video `001`:
+```bash
+python -m fps.tools.analyze colors --id 001
+```
+
+For example, to extract features using `clip-openai` and detect `colors` from videos `001` and `002`:
+```bash
+python -m fps.tools.analyze clip-openai colors --id 001 002
 ```
 
 ## 4. Create index
 
-Step 1: Encode extracted features as STR.
-Step 2: Encode detected objects as STR.
+Step 1: Encode detected objects as STR.
+Step 2: Encode extracted features as STR.
 Step 3: Prepare Lucene documents.
 Step 4: Add to Lucene index.
 Step 5: Add to FAISS index.
+Step 6: Compute objects frequency.
 
 ```bash
 ```
