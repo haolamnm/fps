@@ -8,7 +8,17 @@ logger = get_logger(__name__)
 
 def run_command(command: list[str], video_id: str | None, description: str = "running command") -> int:
     try:
-        subprocess.run(command, text=True, check=True, capture_output=True)
+        process = subprocess.run(
+            command,
+            text=True,
+            check=True,
+            capture_output=True,
+            bufsize=1,
+        )
+        for line in process.stdout:
+            line = line.strip()
+            print(line)
+
         return SUCCESS_EXIT_CODE
     except subprocess.CalledProcessError as e:
         logger.error(f"Error {description} for video {video_id}: {e.stderr.strip()}")
