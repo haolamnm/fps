@@ -38,6 +38,7 @@ def str_encode_objects(video_id: str, collection_dir: Path, config: dict[str, An
     command = list(
         itertools.chain(
             [sys.executable, "-m", "fps.services.index.str-object-encoder.encode"],
+            ["--config-path", str(collection_dir / "config.yaml")],
             ["--force"] if force else [],
             [str(str_objects_template), str(cnt_objects_template)],
             objects_templates,
@@ -58,6 +59,7 @@ def str_encode_features(video_id: str, collection_dir: Path, features_name: str,
     command = list(
         itertools.chain(
             [sys.executable, "-m", "fps.services.index.str-feature-encoder.encode"],
+            ["--config-path", str(collection_dir / "config.yaml")],
             ["--force"] if force else [],
             [str(input_template), str(str_encoder_file), str(str_features_template)],
             ["--video-ids", video_id],
@@ -199,6 +201,7 @@ def add_to_faiss_index(features_name: str, video_ids: list[str] | None, force: b
     command = list(
         itertools.chain(
             [sys.executable, "-m", service, str(faiss_index_file), str(faiss_idmap_file)],
+            ["--config-path", str(collection_dir / "config.yaml")],
             ["create"] if bulk_mode else ["add"],
             ["--force"] if force else [],
             [str(f) for f in features_input],
@@ -316,10 +319,10 @@ if __name__ == "__main__":
         help="enable verbose output (default: False)",
     )
     parser.add_argument(
-        "--config-path",
+        "--collection-path",
         type=Path,
-        default=Path("~/fps/config.yaml").expanduser(),
-        help="path to the configuration file (default: ~/fps/config.yaml)",
+        default=Path.home() / "fps",
+        help="path to the collection directory (default: ~/fps)",
     )
     parser.add_argument(
         "phases",
@@ -329,14 +332,14 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    collection_dir: Path = Path.home() / "fps"
+    collection_dir: Path = args.collection_path.expanduser().resolve()
     video_ids: list[str] = args.video_ids or [
         video_id.name for video_id in (collection_dir / "selected-frames").iterdir() if video_id.is_dir()
     ]
     phases: list[str] = args.phases or []
     replace: bool = args.replace
     verbose: bool = args.verbose
-    config: dict[str, Any] = load_config(args.config_path)
+    config: dict[str, Any] = load_config(str(collection_dir / "config.yaml"))
 
     if verbose:
         logger.setLevel(logging.DEBUG)
