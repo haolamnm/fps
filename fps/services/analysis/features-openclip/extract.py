@@ -121,7 +121,7 @@ class OpenCLIPExtractor(BaseFrameExtractor):
                 features = torch.nn.functional.normalize(features, dim=-1, p=2)
                 features = features.cpu().numpy()
 
-                for frame_path, feature in zip(frame_paths, features, strict=True):
+                for frame_path, feature in zip(frame_paths, features, strict=False):
                     yield FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
 
 

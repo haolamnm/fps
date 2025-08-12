@@ -113,7 +113,7 @@ class DinoV2Extractor(BaseFrameExtractor):
         features = features / np.linalg.norm(features, axis=1, keepdims=True)
         records = [
             FeatureRecord(_id=frame_path.stem, feature_vector=feature.tolist())
-            for frame_path, feature in zip(frame_paths, features, strict=True)
+            for frame_path, feature in zip(frame_paths, features, strict=False)
         ]
         return records
 
