@@ -147,11 +147,11 @@ def copy_video(
     return video_id, target_path
 
 
-def build_resize_command(input_path: Path, tiny_output: Path, medium_output: Path) -> list[str]:
+def build_resize_command(input_path: Path, tiny_output: Path, medium_output: Path, gpu: bool = False) -> list[str]:
     """
     Function to build the ffmpeg command for resizing videos.
     """
-    use_gpu = torch.cuda.is_available()
+    use_gpu = torch.cuda.is_available() and gpu
     command = [
         "ffmpeg",
         "-y",
@@ -228,10 +228,7 @@ def build_resize_command(input_path: Path, tiny_output: Path, medium_output: Pat
 
 
 def create_resized_videos(
-    video_path: Path,
-    video_id: str,
-    collection_dir: Path,
-    force: bool = False,
+    video_path: Path, video_id: str, collection_dir: Path, force: bool = False, gpu: bool = False
 ) -> int:
     """
     Create resized versions of the video.
@@ -252,7 +249,7 @@ def create_resized_videos(
         return SUCCESS_EXIT_CODE
 
     # Otherwise, create resized videos
-    command = build_resize_command(video_path, tiny_video_file, medium_video_file)
+    command = build_resize_command(video_path, tiny_video_file, medium_video_file, gpu=gpu)
     logger.debug(f"Running command: {' '.join(command)}")
     return run_command(command, video_id, "creating resized videos")
 
@@ -306,12 +303,7 @@ def detect_scenes(
     return SUCCESS_EXIT_CODE
 
 
-def extract_frames(
-    video_path: Path,
-    video_id: str,
-    collection_dir: Path,
-    force: bool = False,
-) -> int:
+def extract_frames(video_path: Path, video_id: str, collection_dir: Path, force: bool = False) -> int:
     """
     Extract frames from the video.
     """
@@ -358,11 +350,7 @@ def extract_frames(
     return run_command(command, video_id, "extracting frames")
 
 
-def create_thumbnails(
-    video_id: str,
-    collection_dir: Path,
-    force: bool = False,
-) -> int:
+def create_thumbnails(video_id: str, collection_dir: Path, force: bool = False) -> int:
     """
     Create thumbnails for the video.
     """
@@ -418,7 +406,8 @@ def import_video(
     scene_detection_params: list[str],
     scene_max_length: float,
     use_all_paths: bool,
-    replace: bool,
+    replace: bool = False,
+    gpu: bool = False,
 ) -> int:
     """
     Import a single video into the collection.
@@ -431,19 +420,12 @@ def import_video(
     # Create resized video files in background process
     thread = threading.Thread(
         target=create_resized_videos,
-        args=(target_path, video_id, collection_dir, replace),
+        args=(target_path, video_id, collection_dir, replace, gpu),
     )
     thread.start()
 
     # Detect scenes in the video
-    detect_scenes(
-        target_path,
-        video_id,
-        collection_dir,
-        scene_detection_params,
-        scene_max_length,
-        replace,
-    )
+    detect_scenes(target_path, video_id, collection_dir, scene_detection_params, scene_max_length, replace)
     logger.debug(f"Detected scenes for {video_id} in {target_path}")
 
     # Extract frames
@@ -482,13 +464,19 @@ if __name__ == "__main__":
         "--replace",
         default=False,
         action="store_true",
-        help="replace any existing video with the same ID (default: false)",
+        help="replace any existing video with the same ID (default: False)",
+    )
+    parser.add_argument(
+        "--gpu",
+        default=False,
+        action="store_true",
+        help="use GPU for video processing (default: False, uses CPU)",
     )
     parser.add_argument(
         "--verbose",
         default=False,
         action="store_true",
-        help="enable verbose logging for debug (default: false)",
+        help="enable verbose logging for debug (default: False)",
     )
     parser.add_argument(
         "--scene-detection-params",
@@ -502,14 +490,21 @@ if __name__ == "__main__":
         default=0.0,
         help="maximum length of scenes in seconds (default: 0.0, no splitting)",
     )
+    parser.add_argument(
+        "--collection-path",
+        type=Path,
+        default=Path.home() / "fps",
+        help="path to the collection directory (default: ~/fps)",
+    )
     args = parser.parse_args()
 
     # Define argument variables
     video_path: Path = args.video_path.expanduser().resolve()
     video_id: str = args.id.strip() or video_path.stem
-    collection_dir: Path = Path.home() / "fps"
+    collection_dir: Path = args.collection_path.expanduser().resolve()
     replace: bool = args.replace
     verbose: bool = args.verbose
+    gpu: bool = args.gpu
     scene_detection_params: list[str] = args.scene_detection_params
     scene_max_length: float = args.scene_max_length
 
@@ -554,4 +549,5 @@ if __name__ == "__main__":
             scene_max_length,
             use_all_paths,
             replace,
+            gpu,
         )
