@@ -51,7 +51,7 @@ def load_index(features_name: str) -> FaissIndexHandler:
         raise FileNotFoundError(f"Index or ID map not found for {features_name}")
 
     index = faiss.read_index(str(index_path))
-    with open(idmap_path, "r") as file:
+    with open(idmap_path) as file:
         ids = [line.strip() for line in file.readlines()]
 
     index_handler = FaissIndexHandler(index, ids)
@@ -90,7 +90,7 @@ def create_app() -> FastAPI:
             try:
                 load_index(request.features_name)
             except FileNotFoundError as e:
-                raise HTTPException(status_code=404, detail=str(e))
+                raise HTTPException(status_code=404, detail=str(e)) from e
 
         if request.k <= 0:
             raise HTTPException(status_code=400, detail="k must be a positive integer")
@@ -103,7 +103,7 @@ def create_app() -> FastAPI:
         frame_ids, scores = index_handler.search(feature_vector, request.k)
         results = [
             {"id": frame_id, "score": score}
-            for frame_id, score in zip(frame_ids, scores)
+            for frame_id, score in zip(frame_ids, scores, strict=True)
             if score >= 0.10  # Filter out low scores
         ]
 
