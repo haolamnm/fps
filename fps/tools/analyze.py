@@ -170,10 +170,10 @@ if __name__ == "__main__":
         help="enable verbose logging for debug (default: False)",
     )
     parser.add_argument(
-        "--config-path",
-        default=Path("~/fps/config.yaml").expanduser(),
+        "--collection-path",
         type=Path,
-        help="path to the configuration file (default: ~/fps/config.yaml)",
+        default=Path.home() / "fps",
+        help="path to the collection directory (default: ~/fps)",
     )
     parser.add_argument(
         "analyzers",
@@ -184,14 +184,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    collection_dir: Path = Path.home() / "fps"
+    collection_dir: Path = args.collection_path.expanduser().resolve()
     frames_dir: Path = collection_dir / "selected-frames"
     video_ids: list[str] = args.video_ids or [video_id.name for video_id in frames_dir.iterdir() if video_id.is_dir()]
     analyzers: list[str] = args.analyzers or []
     replace: bool = args.replace
     gpu: bool = args.gpu
     verbose: bool = args.verbose
-    config: dict[str, Any] = load_config(args.config_path)
+    config: dict[str, Any] = load_config(str(collection_dir / "config.yaml"))
 
     if verbose:
         logger.setLevel(logging.DEBUG)
