@@ -1,7 +1,8 @@
 import argparse
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import faiss
 import h5py
@@ -52,8 +53,7 @@ def load_ids_and_features(file_paths: list[Path]) -> Iterator[tuple[str, np.ndar
             ids = np.array(ids_dataset.asstr()[:], dtype=np.str_)
             features = np.array(features_dataset[:], dtype=np.float32)
 
-            for _id, feature in zip(ids, features):
-                yield _id, feature
+            yield from zip(ids, features, strict=False)
 
 
 def create(args: argparse.Namespace) -> None:
@@ -97,7 +97,7 @@ def create(args: argparse.Namespace) -> None:
 
     with open(args.idmap_path, "w") as idmap_file:
         for batch in batches:
-            ids_batch, features_batch = zip(*batch)
+            ids_batch, features_batch = zip(*batch, strict=True)
             idmap_file.write("\n".join(ids_batch) + "\n")  # type: ignore
 
             features_batch = np.stack(features_batch).astype(np.float32)
@@ -113,7 +113,7 @@ def add(args: argparse.Namespace) -> None:
     if args.index_path.exists() and args.idmap_path.exists():
         # Load existing index and ID map
         index = faiss.read_index(str(args.index_path))
-        with open(args.idmap_path, "r") as lines:
+        with open(args.idmap_path) as lines:
             idmap = list(map(str.rstrip, lines.readlines()))
 
     # Else, there is no index, create an empty one
@@ -152,11 +152,11 @@ def add(args: argparse.Namespace) -> None:
             index.remove_ids(faiss.IDSelectorBatch(np.array(positions, dtype=np.int64)))  # type: ignore
 
         # Add new features to the index in batches
-        ids_and_features = zip(ids, features)
+        ids_and_features = zip(ids, features, strict=True)
         batches = more_itertools.batched(ids_and_features, args.batch_size)
 
         for batch in batches:
-            ids_batch, features_batch = zip(*batch)
+            ids_batch, features_batch = zip(*batch, strict=True)
             idmap.extend(ids_batch)
             features_batch = np.stack(features_batch).astype(np.float32)
             index.add(features_batch)
@@ -171,6 +171,9 @@ def add(args: argparse.Namespace) -> None:
 
     logger.info(f"Updated index with {index.ntotal} features")
 
+    with open(args.idmap_path, "w") as idmap_file:
+        idmap_file.write("\n".join(idmap) + "\n")
+
     faiss.write_index(index, str(args.index_path))
     logger.info(f"Saved index to {args.index_path}")
 
@@ -182,7 +185,7 @@ def remove(args: argparse.Namespace) -> None:
 
     # Load index and ID map
     index = faiss.read_index(str(args.index_path))
-    with open(args.idmap_path, "r") as lines:
+    with open(args.idmap_path) as lines:
         idmap = list(map(str.rstrip, lines.readlines()))
 
     positions: set[int] = set()
