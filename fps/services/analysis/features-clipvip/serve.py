@@ -69,19 +69,19 @@ if __name__ == "__main__":
             "openai/clip-vit-base-patch16",
             "openai/clip-vit-large-patch14",
         ],
-        help="model name to use for encoding queries",
+        help="model name to use for encoding queries (default: openai/clip-vit-base-patch16)",
     )
     parser.add_argument(
         "--port",
         default=8000,
         type=int,
-        help="port to run the service on",
+        help="port to run the service on (default: 8000)",
     )
     parser.add_argument(
         "--host",
         default="0.0.0.0",
         type=str,
-        help="host to run the service on",
+        help="host to run the service on (default: localhost)",
     )
     args = parser.parse_args()
 
