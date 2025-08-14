@@ -134,7 +134,7 @@ def prepare_lucene_doc(video_id: str, collection_dir: Path, force: bool = False)
         str_documents.extend(str_feature_docs)
 
     def merge_documents(docs: Iterable[dict[str, Any]]) -> Iterator[dict[str, Any]]:
-        for records in zip(*docs, strict=True):
+        for records in zip(*docs, strict=False):
             merged_record = dict(collections.ChainMap(*records))
             yield merged_record
 
@@ -143,14 +143,14 @@ def prepare_lucene_doc(video_id: str, collection_dir: Path, force: bool = False)
     def fix_fieldnames(record: dict[str, Any]) -> dict[str, Any]:
         # ID field
         _id = record.pop("_id", "")
-        record["image_id"] = _id
-        record["video_id"] = video_id
-        record["collection"] = "fps"
+        record["imgID"] = record["visioneid"] = _id
+        record["videoID"] = video_id
+        record["collection"] = "collection"
 
         # TODO: Change to use a more consistent naming scheme
         record["txt"] = record.pop("object_box_str", "")
         record["objects"] = record.pop("object_cnt_str", "")
-        record["objects_info"] = record.pop("object_info", "")
+        record["objectsinfo"] = record.pop("object_info", "")
 
         if "features_dinov2_str" in record:
             record["features"] = record.pop("features_dinov2_str", "")
@@ -173,9 +173,10 @@ def add_to_lucene_index(video_id: str, collection_dir: Path, force: bool = False
     documents_template = collection_dir / "lucene-documents" / "{video_id}" / "{video_id}-lucene-docs.jsonl.gz"
     lucene_index_dir = collection_dir / "lucene-index"
 
+    service = "fps/services/index/lucene-index-manager/target/lucene-index-manager-0.1-jar-with-dependencies.jar"
     command = list(
         itertools.chain(
-            ["java", "-jar", "lucene-index-manager.jar", str(lucene_index_dir), "add"],
+            ["java", "-jar", service, str(lucene_index_dir), "add"],
             ["--force"] if force else [],
             [str(documents_template), "--video-ids", video_id],
         )
@@ -291,9 +292,6 @@ def index_videos(video_ids: list[str], config: dict[str, Any], replace: bool = F
         logger.info("Counting objects across all videos")
         count_objects(force=replace)
 
-    if not threads:
-        logger.info("No indexing tasks were started")
-
     logger.info("Indexing completed successfully")
 
 
@@ -341,10 +339,8 @@ if __name__ == "__main__":
     verbose: bool = args.verbose
     config: dict[str, Any] = load_config(str(collection_dir / "config.yaml"))
 
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+    log_level = logging.DEBUG if verbose else logging.INFO
+    logger.setLevel(log_level)
 
     index_videos(video_ids, config, replace=replace, phases=phases)
     logger.info("Indexing process completed successfully")
