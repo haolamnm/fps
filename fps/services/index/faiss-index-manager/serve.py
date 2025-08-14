@@ -64,7 +64,7 @@ def load_index(features_name: str, collection_dir: Path) -> FaissIndexHandler:
 class SearchRequest(BaseModel):
     feature_vector: list[float]
     type: str
-    query_id: str
+    query_id: str = ""
     k: int = 10
 
 

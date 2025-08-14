@@ -98,12 +98,11 @@ def create_app(config: Config) -> FastAPI:
         return {"message": "pong"}
 
     @app.get("/get-text-feature")
-    def encode(request: QueryRequest):
-        query = request.query.strip()
-        if not query:
+    def encode(text: str):
+        if not text:
             raise HTTPException(status_code=400, detail="Query cannot be empty")
         try:
-            feature_vector = encoder.encode(query)
+            feature_vector = encoder.encode(text.strip())
             return feature_vector
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e
