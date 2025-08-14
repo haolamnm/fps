@@ -41,12 +41,13 @@ class FaissIndexHandler:
 loaded_indices: dict[str, FaissIndexHandler] = {}
 
 
-def load_index(features_name: str) -> FaissIndexHandler:
+def load_index(features_name: str, collection_dir: Path) -> FaissIndexHandler:
     if features_name in loaded_indices:
         return loaded_indices[features_name]
 
-    index_path = Path(f"~/fps/data/faiss-index_{features_name}.faiss").expanduser()
-    idmap_path = Path(f"~/fps/data/faiss-idmap_{features_name}.txt").expanduser()
+    index_path = collection_dir / f"faiss-index_{features_name}.faiss"
+    idmap_path = collection_dir / f"faiss-idmap_{features_name}.txt"
+
     if not index_path.exists() or not idmap_path.exists():
         raise FileNotFoundError(f"Index or ID map not found for {features_name}")
 
@@ -61,11 +62,12 @@ def load_index(features_name: str) -> FaissIndexHandler:
 
 class SearchRequest(BaseModel):
     feature_vector: list[float]
-    features_name: str
+    type: str
+    query_id: str
     k: int = 10
 
 
-def create_app() -> FastAPI:
+def create_app(collection_dir: Path) -> FastAPI:
     app = FastAPI(title="faiss index handler")
     app.add_middleware(
         CORSMiddleware,
@@ -80,15 +82,15 @@ def create_app() -> FastAPI:
 
     @app.post("/search")
     def search(request: SearchRequest):
-        if not request.features_name:
-            raise HTTPException(status_code=400, detail="features_name is required")
+        if not request.type:
+            raise HTTPException(status_code=400, detail="type is required")
 
         if not request.feature_vector:
             raise HTTPException(status_code=400, detail="feature_vector is required")
 
-        if request.features_name not in loaded_indices:
+        if request.type not in loaded_indices:
             try:
-                load_index(request.features_name)
+                load_index(request.type, collection_dir)
             except FileNotFoundError as e:
                 raise HTTPException(status_code=404, detail=str(e)) from e
 
@@ -97,12 +99,12 @@ def create_app() -> FastAPI:
 
         # Make sure the feature is a 2D numpy array
         feature_vector = np.atleast_2d(request.feature_vector).astype(np.float32)
-        index_handler = loaded_indices[request.features_name]
+        index_handler = loaded_indices[request.type]
 
         # Perform the search
         frame_ids, scores = index_handler.search(feature_vector, request.k)
         results = [
-            {"id": frame_id, "score": score}
+            {"imgId": frame_id, "score": score}
             for frame_id, score in zip(frame_ids, scores, strict=True)
             if score >= 0.10  # Filter out low scores
         ]
@@ -118,34 +120,38 @@ if __name__ == "__main__":
         "--host",
         default="0.0.0.0",
         type=str,
-        help="host to run the server on",
+        help="host to run the server on (default: localhost)",
     )
     parser.add_argument(
         "--port",
         default=8000,
         type=int,
-        help="port to run the server on",
+        help="port to run the server on (default: 8000)",
     )
     parser.add_argument(
         "--lazy",
         default=False,
         action="store_true",
-        help="only load indices when first requested",
+        help="only load indices when first requested (default: False)",
     )
     parser.add_argument(
-        "--config-path",
-        default=Path("~/fps/config.yaml").expanduser(),
+        "--collection-path",
         type=Path,
-        help="path to the configuration file",
+        default=Path.home() / "fps",
+        help="path to the collection directory (default: ~/fps)",
     )
     args = parser.parse_args()
 
-    if not args.config_path.exists():
-        raise FileNotFoundError(f"Configuration file not found at {args.config_path}")
+    collection_dir: Path = args.collection_path.expanduser().resolve()
+    config_path: Path = collection_dir / "config.yaml"
+    lazy_load: bool = args.lazy
+
+    if not config_path.exists():
+        raise FileNotFoundError(f"Configuration file not found at {config_path}")
 
     # When lazy loading is false, load all indices at startup
-    if not args.lazy:
-        config = load_config(args.config_path)
+    if not lazy_load:
+        config = load_config(str(config_path))
 
         # Nested dictionary
         available_features = config["analysis"]["features"]
@@ -158,9 +164,9 @@ if __name__ == "__main__":
         ]
         for features_name in features_names:
             try:
-                load_index(features_name)
+                load_index(features_name, collection_dir)
             except FileNotFoundError as e:
                 print(f"Error loading index for {features_name}: {e}")
 
-    app = create_app()
+    app = create_app(collection_dir)
     uvicorn.run(app, host=args.host, port=args.port)
