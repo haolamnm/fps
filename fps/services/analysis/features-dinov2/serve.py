@@ -1,5 +1,6 @@
 import argparse
 import io
+import sys
 import urllib.request
 import warnings
 from pathlib import Path
@@ -104,7 +105,7 @@ def create_app(model_name: str) -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="dinov2 encoder service")
     parser.add_argument(
         "--model-name",
@@ -127,5 +128,15 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    app = create_app(model_name=args.model_name)
+    return args
+
+
+def main() -> int:
+    args = parse_args()
+    app = create_app(args.model_name)
     uvicorn.run(app, host=args.host, port=args.port)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

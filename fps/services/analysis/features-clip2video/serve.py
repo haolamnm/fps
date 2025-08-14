@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 import torch
 import uvicorn
@@ -110,7 +111,7 @@ def create_app(config: Config) -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="clip2video encoder")
     parser.add_argument(
         "--host",
@@ -126,11 +127,21 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    return args
+
+
+def main() -> int:
+    args = parse_args()
     config = Config(
         video_path=None,
         checkpoint_dir="checkpoint",
         clip_path="checkpoint/ViT-B-32.pt",
     )
-
     app = create_app(config)
     uvicorn.run(app, host=args.host, port=args.port)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

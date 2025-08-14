@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -114,7 +115,7 @@ def create_app(collection_dir: Path) -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="faiss index handler")
     parser.add_argument(
         "--host",
@@ -141,6 +142,12 @@ if __name__ == "__main__":
         help="path to the collection directory (default: ~/fps)",
     )
     args = parser.parse_args()
+
+    return args
+
+
+def main() -> int:
+    args = parse_args()
 
     collection_dir: Path = args.collection_path.expanduser().resolve()
     config_path: Path = collection_dir / "config.yaml"
@@ -170,3 +177,9 @@ if __name__ == "__main__":
 
     app = create_app(collection_dir)
     uvicorn.run(app, host=args.host, port=args.port)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

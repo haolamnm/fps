@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 import open_clip
 import torch
@@ -64,7 +65,7 @@ def create_app(model_name: str, pretrained: str, title: str) -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="openclip encoder")
     parser.add_argument(
         "--model_name",
@@ -97,8 +98,18 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    model_name: str = args.model_name
+    return args
+
+
+def main() -> int:
+    args = parse_args()
     title = "clip-laion encoder" if args.pretrained == "laion2b_s32b_b82k" else "clip-datacomp encoder"
 
-    app = create_app(model_name, args.pretrained, title)
+    app = create_app(args.model_name, args.pretrained, title)
     uvicorn.run(app, host=args.host, port=args.port)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 import torch
 import uvicorn
@@ -58,7 +59,7 @@ def create_app(model_name: str) -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="clip encoder")
     parser.add_argument(
         "--model-name",
@@ -85,6 +86,15 @@ if __name__ == "__main__":
         help="host to run the service on (default: localhost)",
     )
     args = parser.parse_args()
+    return args
 
+
+def main() -> int:
+    args = parse_args()
     app = create_app(args.model_name)
     uvicorn.run(app, host=args.host, port=args.port)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
