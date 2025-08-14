@@ -70,19 +70,19 @@ if __name__ == "__main__":
             "openai/clip-vit-large-patch14",
             "openai/clip-vit-large-patch14-336",
         ],
-        help="name of the CLIP model to use for feature extraction",
+        help="name of the CLIP model to use for feature extraction (default: openai/clip-vit-large-patch14)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=8000,
-        help="port to run the service on",
+        help="port to run the service on (default: 8000)",
     )
     parser.add_argument(
         "--host",
         type=str,
         default="0.0.0.0",
-        help="host to run the service on",
+        help="host to run the service on (default: localhost)",
     )
     args = parser.parse_args()
 
