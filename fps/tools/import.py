@@ -508,10 +508,8 @@ if __name__ == "__main__":
     scene_detection_params: list[str] = args.scene_detection_params
     scene_max_length: float = args.scene_max_length
 
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+    log_level = logging.DEBUG if verbose else logging.INFO
+    logger.setLevel(log_level)
 
     # Use all paths is specify a directory and no ID is given
     assert not (video_id and video_path is None), "Cannot specify ID without a video path"

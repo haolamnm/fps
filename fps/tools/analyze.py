@@ -193,9 +193,7 @@ if __name__ == "__main__":
     verbose: bool = args.verbose
     config: dict[str, Any] = load_config(str(collection_dir / "config.yaml"))
 
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+    log_level = logging.DEBUG if verbose else logging.INFO
+    logger.setLevel(log_level)
 
     analyze_videos(video_ids, analyzers, collection_dir, replace, gpu, config)
