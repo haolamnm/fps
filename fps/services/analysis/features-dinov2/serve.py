@@ -107,25 +107,25 @@ def create_app(model_name: str) -> FastAPI:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="dinov2 encoder service")
     parser.add_argument(
-        "--model",
+        "--model-name",
         default="dinov2_vitl14",
         type=str,
         choices=["dinov2_vits14", "dinov2_vitb14", "dinov2_vitl14", "dinov2_vitg14"],
-        help="name of the DINOv2 model to use",
+        help="name of the DINOv2 model to use (default: dinov2_vitl14)",
     )
     parser.add_argument(
         "--host",
         default="0.0.0.0",
         type=str,
-        help="host to run the service on",
+        help="host to run the service on (default: locahost)",
     )
     parser.add_argument(
         "--port",
         default=8000,
         type=int,
-        help="port to run the service on",
+        help="port to run the service on (default: 8000)",
     )
     args = parser.parse_args()
 
-    app = create_app(model_name=args.model)
+    app = create_app(model_name=args.model_name)
     uvicorn.run(app, host=args.host, port=args.port)
