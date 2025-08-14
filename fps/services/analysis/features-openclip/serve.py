@@ -71,7 +71,7 @@ if __name__ == "__main__":
         default="ViT-L-14",
         type=str,
         choices=["ViT-L-14", "ViT-B-32", "ViT-B-16"],
-        help="model name to use for feature extraction",
+        help="model name to use for feature extraction (default: ViT-L-14)",
     )
     parser.add_argument(
         "--pretrained",
@@ -81,19 +81,19 @@ if __name__ == "__main__":
             "laion2b_s32b_b82k",
             "datacomp_xl_s13b_b90k",
         ],
-        help="pretrained model to use for feature extraction",
+        help="pretrained model to use for feature extraction (default: laion2b_s32b_b82k)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=8000,
-        help="port to run the server on",
+        help="port to run the server on (default: 8000)",
     )
     parser.add_argument(
         "--host",
         type=str,
         default="0.0.0.0",
-        help="host to run the server on",
+        help="host to run the server on (default: locahost)",
     )
     args = parser.parse_args()
 
