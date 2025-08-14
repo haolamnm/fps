@@ -116,13 +116,13 @@ if __name__ == "__main__":
         "--host",
         type=str,
         default="0.0.0.0",
-        help="host to run on",
+        help="host to run on (default: locahost)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=8000,
-        help="port to run on",
+        help="port to run on (default: 8000)",
     )
     args = parser.parse_args()
 
