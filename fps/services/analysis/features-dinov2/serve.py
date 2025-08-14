@@ -69,21 +69,17 @@ def create_app(model_name: str) -> FastAPI:
     def ping():
         return {"message": "pong"}
 
-    @app.get("/encode")
+    @app.get("/get-image-feature")
     def encode_url(url: str):
         if not url:
             raise HTTPException(status_code=400, detail="Missing 'url' parameter")
         try:
             feature_vector = encoder.encode_url(url)
-            return {
-                "url": url,
-                "feature_vector": feature_vector,
-                "length": len(feature_vector),
-            }
+            return feature_vector
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
-    @app.post("/encode")
+    @app.post("/get-image-feature")
     async def encode_image(image: UploadFile | None = None):
         if image is None:
             image = File(...)
@@ -94,11 +90,7 @@ def create_app(model_name: str) -> FastAPI:
             contents = await image.read()
             pil_image = Image.open(io.BytesIO(contents)).convert("RGB")
             feature_vector = encoder.encode_pil(pil_image)
-            return {
-                "filename": image.filename,
-                "feature_vector": feature_vector,
-                "length": len(feature_vector),
-            }
+            return feature_vector
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
