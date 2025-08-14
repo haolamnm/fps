@@ -6,19 +6,10 @@ from pathlib import Path
 from typing import Any
 
 from ..services.common.utils import get_logger, load_config
-from .constants import SUCCESS_EXIT_CODE
+from .constants import SERVICE_MAPPING, SUCCESS_EXIT_CODE
 from .utils import run_command
 
 logger = get_logger(__name__)
-
-mapping = {
-    "clip-openai": "clip",
-    "clip-laion": "openclip",
-    "clip-datacomp": "openclip",
-    "mrcnn-lvis": "mmdet",
-    "vfnet64-coco": "mmdet",
-    "frcnn-oiv4": "openimages",
-}
 
 
 def parse_cmd_params(params: dict[str, Any] | None) -> list[str]:
@@ -43,7 +34,7 @@ def extract_features(
     frames_dir = collection_dir / "selected-frames" / video_id
 
     cmd_params = parse_cmd_params(params)
-    service = f"fps.services.analysis.features-{mapping.get(extractor, extractor)}.extract"
+    service = f"fps.services.analysis.features-{SERVICE_MAPPING.get(extractor, extractor)}.extract"
     command = list(
         itertools.chain(
             [sys.executable, "-m", service, str(frames_dir)],
@@ -66,7 +57,7 @@ def detect_objects(
     frames_dir = collection_dir / "selected-frames" / video_id
 
     cmd_params = parse_cmd_params(params)
-    service = f"fps.services.analysis.objects-{mapping.get(detector, detector)}.extract"
+    service = f"fps.services.analysis.objects-{SERVICE_MAPPING.get(detector, detector)}.extract"
     command = list(
         itertools.chain(
             [sys.executable, "-m", service, str(frames_dir)],

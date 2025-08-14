@@ -38,3 +38,27 @@ END_SECONDS = "End Time (seconds)"
 LENGTH_FRAMES = "Length (frames)"
 LENGTH_TIMECODE = "Length (timecode)"
 LENGTH_SECONDS = "Length (seconds)"
+
+# Service name mappings
+SERVICE_MAPPING = {
+    "clip-openai": "clip",
+    "clip-laion": "openclip",
+    "clip-datacomp": "openclip",
+    "mrcnn-lvis": "mmdet",
+    "vfnet64-coco": "mmdet",
+    "frcnn-oiv4": "openimages",
+}
+
+# Port mapping for services
+PORT_MAPPING = {
+    # Main port
+    "main": 8080,
+    # Index services
+    "faiss-index-manager": 8090,
+    # Analysis services
+    "features-clip": 8081,
+    "features-clip2video": 8082,
+    "features-clipvip": 8083,
+    "features-dinov2": 8084,
+    "features-openclip": 8085,
+}
