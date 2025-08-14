@@ -66,11 +66,11 @@ def create_app(model_name: str) -> FastAPI:
     app.state.encoder = encoder
 
     @app.get("/ping")
-    def ping():
+    def ping() -> dict[str, str]:
         return {"message": "pong"}
 
     @app.get("/get-image-feature")
-    def encode_url(url: str):
+    def encode_url(url: str) -> list[float]:
         if not url:
             raise HTTPException(status_code=400, detail="Missing 'url' parameter")
         try:
@@ -80,7 +80,7 @@ def create_app(model_name: str) -> FastAPI:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     @app.post("/get-image-feature")
-    async def encode_image(image: UploadFile | None = None):
+    async def encode_image(image: UploadFile | None = None) -> list[float]:
         if image is None:
             image = File(...)
         if not image:

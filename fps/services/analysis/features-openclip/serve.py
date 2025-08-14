@@ -6,7 +6,6 @@ import torch
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 
 class OpenCLIPQueryEncoder:
@@ -31,10 +30,6 @@ class OpenCLIPQueryEncoder:
             return features.cpu().squeeze().tolist()
 
 
-class QueryRequest(BaseModel):
-    query: str
-
-
 def create_app(model_name: str, pretrained: str, title: str) -> FastAPI:
     app = FastAPI(title=title)
     app.add_middleware(
@@ -48,16 +43,16 @@ def create_app(model_name: str, pretrained: str, title: str) -> FastAPI:
     app.state.encoder = encoder
 
     @app.get("/ping")
-    def ping():
+    def ping() -> dict[str, str]:
         return {"message": "pong"}
 
     @app.get("/get-text-feature")
-    def encode(request: QueryRequest):
-        query = request.query.strip()
-        if not query:
+    def encode(text: str) -> list[float]:
+        text = text.strip()
+        if not text:
             raise HTTPException(status_code=400, detail="Query cannot be empty")
         try:
-            feature_vector = encoder.encode(query)
+            feature_vector = encoder.encode(text)
             return feature_vector
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e

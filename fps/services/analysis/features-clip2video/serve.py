@@ -5,7 +5,6 @@ import torch
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 from .clip2video.modules.tokenization_clip import SimpleTokenizer as CLIPTokenizer
 from .config import Config
@@ -78,10 +77,6 @@ class CLIP2VideoQueryEncoder:
             return features.squeeze().cpu().numpy().tolist()
 
 
-class QueryRequest(BaseModel):
-    query: str
-
-
 def create_app(config: Config) -> FastAPI:
     app = FastAPI(title="clip2video encoder")
     app.add_middleware(
@@ -94,15 +89,16 @@ def create_app(config: Config) -> FastAPI:
     app.state.encoder = encoder
 
     @app.get("/ping")
-    def ping():
+    def ping() -> dict[str, str]:
         return {"message": "pong"}
 
     @app.get("/get-text-feature")
-    def encode(text: str):
+    def encode(text: str) -> list[float]:
+        text = text.strip()
         if not text:
             raise HTTPException(status_code=400, detail="Query cannot be empty")
         try:
-            feature_vector = encoder.encode(text.strip())
+            feature_vector = encoder.encode(text)
             return feature_vector
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e
