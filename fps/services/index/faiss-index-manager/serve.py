@@ -110,7 +110,7 @@ def create_app(collection_dir: Path) -> FastAPI:
             if score >= 0.10  # Filter out low scores
         ]
 
-        return {"results": results}
+        return results
 
     return app
 
