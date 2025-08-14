@@ -39,6 +39,7 @@ def str_encode_objects(video_id: str, collection_dir: Path, config: dict[str, An
         itertools.chain(
             [sys.executable, "-m", "fps.services.index.str-object-encoder.encode"],
             ["--config-path", str(collection_dir / "config.yaml")],
+            ["--hypersets-path", str(collection_dir / "hypersets.csv")],
             ["--force"] if force else [],
             [str(str_objects_template), str(cnt_objects_template)],
             objects_templates,
@@ -84,12 +85,12 @@ def prepare_lucene_doc(video_id: str, collection_dir: Path, force: bool = False)
         with open(csv_path, newline="") as file:
             for row in csv.DictReader(file):
                 yield {
-                    "start_frame": int(row[START_FRAME]),
-                    "end_frame": int(row[END_FRAME]),
-                    "middle_frame": (int(row[START_FRAME]) + int(row[END_FRAME])) // 2,
-                    "start_time": float(row[START_SECONDS]),
-                    "end_time": float(row[END_SECONDS]),
-                    "middle_time": (float(row[START_SECONDS]) + float(row[END_SECONDS])) / 2,
+                    "startframe": int(row[START_FRAME]),
+                    "endframe": int(row[END_FRAME]),
+                    "middleframe": (int(row[START_FRAME]) + int(row[END_FRAME])) // 2,
+                    "starttime": float(row[START_SECONDS]),
+                    "endtime": float(row[END_SECONDS]),
+                    "middletime": (float(row[START_SECONDS]) + float(row[END_SECONDS])) / 2,
                 }
 
     scene_docs = map_scenes(scenes_file)
