@@ -1,5 +1,4 @@
 import argparse
-import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any
@@ -63,6 +62,12 @@ class OpenCLIPExtractor(BaseFrameExtractor):
             type=int,
             help="number of worker threads for data loading",
         )
+        parser.add_argument(
+            "--cache-path",
+            type=Path,
+            default=None,
+            help="path to cache directory storing model weights",
+        )
         super().add_arguments(parser)
 
     def __init__(self, args: argparse.Namespace) -> None:
@@ -71,17 +76,14 @@ class OpenCLIPExtractor(BaseFrameExtractor):
         self.pretrained: str = args.pretrained
         self.batch_size: int = args.batch_size
         self.num_workers: int = args.num_workers
-
-        # Ensure the cache directory exists
-        cache_dir = "~/.cache/open_clip"
-        os.makedirs(cache_dir, exist_ok=True)
+        self.cache_path: Path | None = args.cache_path
 
         self.device = "cuda" if torch.cuda.is_available() and self.gpu else "cpu"
         self.model, self.processor, _ = open_clip.create_model_and_transforms(
             self.model_name,
             pretrained=self.pretrained,
             device=self.device,
-            cache_dir=cache_dir,
+            cache_dir=str(self.cache_path) if self.cache_path else None,
         )
         logger.info(f"Loaded model {self.pretrained} on device {self.device}")
         self.model = self.model.to(self.device)
