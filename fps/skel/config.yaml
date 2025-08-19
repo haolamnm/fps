@@ -1,3 +1,7 @@
+core:
+  K: 10000
+  collection_path: ~/fps
+
 analysis:
   objects:
     colors: {}
