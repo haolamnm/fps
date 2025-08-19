@@ -256,7 +256,7 @@ class ColorsExtractor(BaseObjectExtractor):
         chunk_size = multiprocessing.cpu_count()
 
         with multiprocessing.Pool() as pool:
-            for record in pool.imap_unordered(self.extract_path, frame_paths, chunksize=chunk_size):
+            for record in pool.imap(self.extract_path, frame_paths, chunksize=chunk_size):
                 logger.info(f"Extracted colors for {record._id}")
                 yield record
 
