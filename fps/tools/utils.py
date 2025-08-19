@@ -8,16 +8,18 @@ logger = get_logger(__name__)
 
 def run_command(command: list[str], video_id: str | None, description: str = "running command") -> int:
     try:
-        process = subprocess.run(
+        process = subprocess.Popen(
             command,
             text=True,
-            check=True,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             bufsize=1,
         )
+        assert process.stdout is not None, "Process stdout should not be None"
         for line in process.stdout:
-            line = line.strip()
-            print(line)
+            print(line.strip())
+
+        process.wait()
 
         return SUCCESS_EXIT_CODE
     except subprocess.CalledProcessError as e:
