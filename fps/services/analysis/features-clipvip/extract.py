@@ -154,7 +154,7 @@ class VideoCollate:
 
     def __call__(self, batch):
         batch = [list(b) for b in batch]
-        batch = self.processor(videos=batch, return_tensors="pt").pixel_values
+        batch = self.processor(videos=batch, return_tensors="pt", padding=True).pixel_values
         return batch
 
 
