@@ -1,4 +1,5 @@
 import argparse
+from collections.abc import Iterator
 import gc
 import math
 import subprocess
@@ -265,6 +266,22 @@ class CLIPVIPExtractor(BaseVideoExtractor):
                 records[index]._id = scene._id
 
         return records
+
+    def extract_iterable(self, scenes: argparse.Iterable[Scene]) -> Iterator[FeatureRecord]:
+        collate_fn = VideoCollate(self.processor)
+        scenes_list = list(scenes)
+        dataset = CLIPVIPListDataset(scenes_list, self.min_scene_duration)
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            collate_fn=collate_fn,
+        )
+
+        with torch.no_grad():
+            for batch in dataloader:
+                batch_records = self.forward_batch(batch)
+                yield from batch_records
 
 
 if __name__ == "__main__":
