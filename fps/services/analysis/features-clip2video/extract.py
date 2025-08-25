@@ -282,6 +282,16 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
         records = list(itertools.chain.from_iterable(raw_records))
         return records
 
+    def extract_iterable(self, scenes: argparse.Iterable[Scene]) -> itertools.Iterator[FeatureRecord]:
+        scenes_list = list(scenes)
+        dataset = CLIP2VideoListDataset(scenes_list, self.scene_config)
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+        with torch.no_grad():
+            for batch in dataloader:
+                logger.info(f"Processing batch of size {len(batch[0])}")
+                batch_records = self.forward_batch(batch)
+                yield from batch_records
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="clip2video extractor")
