@@ -513,7 +513,7 @@ if __name__ == "__main__":
 
     # Use all paths is specify a directory and no ID is given
     assert not (video_id and video_path is None), "Cannot specify ID without a video path"
-    use_all_paths = video_path.is_dir() and not video_id
+    use_all_paths = video_path.is_dir()
 
     if use_all_paths:
         logger.info(f"Importing all videos from directory: {video_path}")
