@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torchvision
+from collections.abc import Iterable, Iterator
 
 from ...common.extractors import BaseVideoExtractor
 from ...common.types import FeatureRecord, Scene
@@ -282,7 +283,7 @@ class CLIP2VideoExtractor(BaseVideoExtractor):
         records = list(itertools.chain.from_iterable(raw_records))
         return records
 
-    def extract_iterable(self, scenes: argparse.Iterable[Scene]) -> itertools.Iterator[FeatureRecord]:
+    def extract_iterable(self, scenes: Iterable[Scene]) -> Iterator[FeatureRecord]:
         scenes_list = list(scenes)
         dataset = CLIP2VideoListDataset(scenes_list, self.scene_config)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=self.batch_size, num_workers=self.num_workers)

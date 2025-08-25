@@ -1,5 +1,5 @@
 import argparse
-from collections.abc import Iterator
+from collections.abc import Iterator, Iterable
 import gc
 import math
 import subprocess
@@ -267,7 +267,7 @@ class CLIPVIPExtractor(BaseVideoExtractor):
 
         return records
 
-    def extract_iterable(self, scenes: argparse.Iterable[Scene]) -> Iterator[FeatureRecord]:
+    def extract_iterable(self, scenes: Iterable[Scene]) -> Iterator[FeatureRecord]:
         collate_fn = VideoCollate(self.processor)
         scenes_list = list(scenes)
         dataset = CLIPVIPListDataset(scenes_list, self.min_scene_duration)
